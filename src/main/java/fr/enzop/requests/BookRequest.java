@@ -21,8 +21,4 @@ public class BookRequest {
     private String publisher;
     private Format format;
     private boolean available;
-
-    public BookRequest() {
-
-    }
 }

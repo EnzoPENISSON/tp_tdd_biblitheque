@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestConfiguration
 public class LibraryControllerTest {
     private static final String ENDPOINT = "/api/library";
     private static final String ENDPOINT_ID = ENDPOINT + "/{id}";
