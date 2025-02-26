@@ -1,36 +1,23 @@
 package fr.enzop.models;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 @Getter
 @Setter
 @Entity
 public class Book {
 
-    private @Id @GeneratedValue Long id;
+    @Id
+    @UuidGenerator
+    private String id;
     private String isbn;
     private String title;
     private String author;
     private String publisher;
-    private Format format;
     private boolean available;
-
-
-    public Book(String isbn, String title, String author, String publisher, Format format, boolean available) {
-        this.isbn = isbn;
-        this.title = title;
-        this.author = author;
-        this.publisher = publisher;
-        this.format = format;
-        this.available = available;
-    }
-
-    public Book() {
-
-    }
+    private Format format;
 }
