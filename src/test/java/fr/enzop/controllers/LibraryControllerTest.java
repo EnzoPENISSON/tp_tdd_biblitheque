@@ -87,7 +87,7 @@ public class LibraryControllerTest {
     }
 
     @Test
-    public void shouldNotAddBookInTheLibrary(){
+    public void shouldNotAddBookInTheLibraryWrongIsbn(){
         BookRequest requestbook = BookRequest.builder()
                 .title("Les Misérables")
                 .author("Victor Hugo")
@@ -98,6 +98,20 @@ public class LibraryControllerTest {
                 .build();
 
         assertThrows(InvalidIsbnException.class, () -> libraryController.AjoutLivre(requestbook));
+    }
+
+    @Test
+    public void shouldNotAddBookInTheLibraryMissingParameters() {
+        BookRequest requestbook = BookRequest.builder()
+                .title("Les Misérables")
+                .publisher("Livre de Poche Jeunesse (13 Aug. 2014)")
+                .format(Format.POCHE)
+                .isbn("2010008995") // Mauvaise Clef
+                .build();
+
+        BookResponse response = libraryController.AjoutLivre(requestbook);
+
+        assertNull(response);
     }
 
     @Test
