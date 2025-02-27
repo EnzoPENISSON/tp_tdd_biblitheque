@@ -52,10 +52,10 @@ public class LibraryController {
         this.bookRepository.deleteById(id);
     }
 
-    @GetMapping("/search/{title}")
+    @GetMapping("/search/{search}")
     @ResponseStatus(HttpStatus.OK)
-    public List<BookResponse> rechercherParLeTitre(@PathVariable String title) {
-        return this.bookRepository.findAllByTitleContainingIgnoreCase(title)
+    public List<BookResponse> rechercherParLeTitre(@PathVariable String search) {
+        return this.bookRepository.findAllByTitleContainingIgnoreCase(search)
                 .stream()
                 .map(this::convert)
                 .toList();

@@ -63,7 +63,9 @@ public class LibraryControllerTest {
         Mockito.doNothing().when(bookRepository).deleteById(BOOK_ID);
 
         // Modk findAllByTitleContainingIgnoreCase add the existing Book
-        Mockito.when(bookRepository.findAllByTitleContainingIgnoreCase(Mockito.anyString())).thenReturn(booksList);
+        Mockito.when(bookRepository.findAllByTitleContainingIgnoreCase(
+                Mockito.anyString()
+        )).thenReturn(booksList);
     }
 
     @Test
@@ -129,5 +131,29 @@ public class LibraryControllerTest {
 
         result.andExpect(MockMvcResultMatchers.status().isOk());
         result.andExpect(MockMvcResultMatchers.jsonPath("$[0].title").value(bookToSearch));
+    }
+
+    @Test
+    public void shouldGetSearchedBooksByIsbnReturnOk() throws Exception {
+        String bookToSearch = existingBook.getIsbn();
+
+        ResultActions result = this.mockMvc.perform(
+                MockMvcRequestBuilders.get(ENDPOINT_SEARCH, bookToSearch)
+        );
+
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+        result.andExpect(MockMvcResultMatchers.jsonPath("$[0].isbn").value(bookToSearch));
+    }
+
+    @Test
+    public void shouldGetSearchedBooksByAuthorReturnOk() throws Exception {
+        String bookToSearch = existingBook.getAuthor();
+
+        ResultActions result = this.mockMvc.perform(
+                MockMvcRequestBuilders.get(ENDPOINT_SEARCH, bookToSearch)
+        );
+
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+        result.andExpect(MockMvcResultMatchers.jsonPath("$[0].author").value(bookToSearch));
     }
 }
