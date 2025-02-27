@@ -30,8 +30,6 @@ public class LibraryControllerTest {
 
     private static final int BOOK_ID = 2;
 
-    private Book existingBook;
-
     @Mock
     private BookRepository bookRepository; // Mock du repository
 
@@ -40,7 +38,7 @@ public class LibraryControllerTest {
 
     @BeforeEach
     public void init() {
-        existingBook = new Book(
+        Book existingBook = new Book(
                 BOOK_ID,
                 "Les Misérables",
                 "Victor Hugo",

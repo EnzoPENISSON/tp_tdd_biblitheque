@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 @Getter
 @Setter
 @Entity
@@ -17,12 +20,12 @@ public class Adherent {
     private int code;
     private String nom;
     private String prenom;
-    private String dateNaissance;
+    private LocalDateTime dateNaissance;
     private Civilite civilite;
 
     public Adherent() {}
 
-    public Adherent(int code, String nom, String prenom, String dateNaissance, Civilite civilite) {
+    public Adherent(int code, String nom, String prenom, LocalDateTime dateNaissance, Civilite civilite) {
         this.code = code;
         this.nom = nom;
         this.prenom = prenom;
