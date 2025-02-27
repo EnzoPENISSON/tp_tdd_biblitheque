@@ -25,6 +25,16 @@ public class LibraryControllerTest {
 
     private static final int BOOK_ID = 2;
 
+    private static final Book existingBook = new Book(
+            BOOK_ID,
+            "Les misérables",
+            "Victor Hugo",
+            false,
+            "Livre de Poche Jeunesse (13 Aug. 2014)",
+            Format.POCHE,
+            "2010008995"
+    );
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -62,16 +72,6 @@ public class LibraryControllerTest {
 
     @Test
     public void shouldUpdateBookInTheLibraryReturnOkAndAvailable() throws Exception {
-        Book existingBook = new Book(
-                BOOK_ID,
-                "Les misérables",
-                "Victor Hugo",
-                false,
-                "Livre de Poche Jeunesse (13 Aug. 2014)",
-                Format.POCHE,
-                "2010008995"
-        );
-
         BookRequest requestbook = BookRequest.builder()
                 .title("Les misérables")
                 .author("Victor Hugo")
@@ -99,5 +99,14 @@ public class LibraryControllerTest {
         // Book is now available
         result.andExpect(MockMvcResultMatchers.jsonPath("$.available").value(true));
 
+    }
+
+    @Test
+    public void shouldDeleteBookInTheLibraryReturnOk() throws Exception {
+        ResultActions result = this.mockMvc.perform(
+                MockMvcRequestBuilders.delete(ENDPOINT_ID, BOOK_ID)
+        );
+
+        result.andExpect(MockMvcResultMatchers.status().isOk());
     }
 }
