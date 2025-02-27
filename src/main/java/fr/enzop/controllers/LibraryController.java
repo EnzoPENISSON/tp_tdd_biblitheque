@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import fr.enzop.exceptions.BookNotFound;
 
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/library")
@@ -52,6 +52,14 @@ public class LibraryController {
         this.bookRepository.deleteById(id);
     }
 
+    @GetMapping("/search/{title}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<BookResponse> rechercherParLeTitre(@PathVariable String title) {
+        return this.bookRepository.findAllByTitleContainingIgnoreCase(title)
+                .stream()
+                .map(this::convert)
+                .toList();
+    }
 
     private BookResponse convert(Book chambre) {
         BookResponse resp = BookResponse.builder().build();

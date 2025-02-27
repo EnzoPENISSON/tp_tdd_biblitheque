@@ -17,13 +17,15 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @WebMvcTest(LibraryController.class)
 public class LibraryControllerTest {
     private static final String ENDPOINT = "/api/library";
     private static final String ENDPOINT_ID = ENDPOINT + "/{id}";
-    private static final String ENDPOINT_SEARCH = ENDPOINT + "/search";
+    private static final String ENDPOINT_SEARCH = ENDPOINT + "/search/{title}";
 
     private static final int BOOK_ID = 2;
 
@@ -47,6 +49,9 @@ public class LibraryControllerTest {
                 "2010008995"
         );
 
+        List<Book> booksList = new ArrayList<>();
+        booksList.add(existingBook);
+
         // Mock findById() to return an existing book
         Mockito.when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(existingBook));
 
@@ -56,6 +61,9 @@ public class LibraryControllerTest {
 
         // Mock deleteById() to do nothing
         Mockito.doNothing().when(bookRepository).deleteById(BOOK_ID);
+
+        // Modk findAllByTitleContainingIgnoreCase add the existing Book
+        Mockito.when(bookRepository.findAllByTitleContainingIgnoreCase(Mockito.anyString())).thenReturn(booksList);
     }
 
     @Test
@@ -111,7 +119,8 @@ public class LibraryControllerTest {
         result.andExpect(MockMvcResultMatchers.status().isOk());
     }
 
-    @Test void shouldGetSearchedBooksByTitleReturnOk() throws Exception {
+    @Test
+    public void shouldGetSearchedBooksByTitleReturnOk() throws Exception {
         String bookToSearch = existingBook.getTitle();
 
         ResultActions result = this.mockMvc.perform(
