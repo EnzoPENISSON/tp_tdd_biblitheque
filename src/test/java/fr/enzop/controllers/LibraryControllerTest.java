@@ -59,9 +59,6 @@ public class LibraryControllerTest {
         Mockito.when(bookRepository.save(Mockito.any(Book.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Mock deleteById() to do nothing
-        Mockito.doNothing().when(bookRepository).deleteById(BOOK_ID);
-
         // Modk findAllByTitleContainingIgnoreCase add the existing Book
         Mockito.when(bookRepository.findAllByTitleContainingIgnoreCase(
                 Mockito.anyString()
