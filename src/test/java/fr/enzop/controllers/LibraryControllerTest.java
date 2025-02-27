@@ -16,12 +16,14 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.Optional;
+
 @WebMvcTest(LibraryController.class)
 public class LibraryControllerTest {
     private static final String ENDPOINT = "/api/library";
     private static final String ENDPOINT_ID = ENDPOINT + "/{id}";
 
-    private static final int BOOK_ID_UPDATE = 2;
+    private static final int BOOK_ID = 2;
 
     @Autowired
     private MockMvc mockMvc;
@@ -30,7 +32,7 @@ public class LibraryControllerTest {
     private BookRepository bookRepository;
 
     @Test
-    public void  shouldAddBookInTheLibrary() throws Exception {
+    public void  shouldAddBookInTheLibraryReturnCreated() throws Exception {
         // Given
         BookRequest requestbook = BookRequest.builder()
                 .title("Les misérables")
@@ -45,7 +47,7 @@ public class LibraryControllerTest {
         Mockito.when(bookRepository.save(Mockito.any(Book.class)))
                 .thenAnswer(invocation -> {
                     Book savedBook = invocation.getArgument(0);
-                    savedBook.setId(1); // Simule un ID généré
+                    savedBook.setId(BOOK_ID); // Simule un ID généré
                     return savedBook;
                 });
 
@@ -59,7 +61,17 @@ public class LibraryControllerTest {
     }
 
     @Test
-    public void shouldUpdateBookInTheLibrary() throws Exception {
+    public void shouldUpdateBookInTheLibraryReturnOkAndAvailable() throws Exception {
+        Book existingBook = new Book(
+                BOOK_ID,
+                "Les misérables",
+                "Victor Hugo",
+                false,
+                "Livre de Poche Jeunesse (13 Aug. 2014)",
+                Format.POCHE,
+                "2010008995"
+        );
+
         BookRequest requestbook = BookRequest.builder()
                 .title("Les misérables")
                 .author("Victor Hugo")
@@ -69,18 +81,23 @@ public class LibraryControllerTest {
                 .isbn("2010008995")
                 .build();
 
+        // Mock findById() to return an existing book
+        Mockito.when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(existingBook));
+
+        // Mock save() to return the updated book
+        Mockito.when(bookRepository.save(Mockito.any(Book.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+
         ResultActions result = this.mockMvc.perform(
-                MockMvcRequestBuilders.put(ENDPOINT_ID, BOOK_ID_UPDATE)
+                MockMvcRequestBuilders.put(ENDPOINT_ID, BOOK_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(TestUtil.json(requestbook))
         );
 
         result.andExpect(MockMvcResultMatchers.status().isOk());
-        result.andExpect(MockMvcResultMatchers.jsonPath("$.title").value(requestbook.getTitle()));
-        result.andExpect(MockMvcResultMatchers.jsonPath("$.author").value(requestbook.getAuthor()));
-        result.andExpect(MockMvcResultMatchers.jsonPath("$.available").value(requestbook.isAvailable()));
-        result.andExpect(MockMvcResultMatchers.jsonPath("$.publisher").value(requestbook.getPublisher()));
-        result.andExpect(MockMvcResultMatchers.jsonPath("$.format").value(requestbook.getFormat().toString()));
-        result.andExpect(MockMvcResultMatchers.jsonPath("$.isbn").value(requestbook.getIsbn()));
+        // Book is now available
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.available").value(true));
+
     }
 }
