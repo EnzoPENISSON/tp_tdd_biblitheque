@@ -8,6 +8,7 @@ import fr.enzop.models.Book;
 import fr.enzop.models.Reservation;
 import fr.enzop.repositories.ReservationRepository;
 import fr.enzop.requests.BookRequest;
+import fr.enzop.requests.ReservationRequest;
 import fr.enzop.responses.BookResponse;
 import fr.enzop.responses.ReservationResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +28,11 @@ public class ReservationController {
     private final ReservationRepository reservationRepository;
 
 
+
     private ReservationResponse convert(Reservation reservation) {
         ReservationResponse resp = ReservationResponse.builder().build();
         BeanUtils.copyProperties(reservation, resp);
         return resp;
     }
+
 }

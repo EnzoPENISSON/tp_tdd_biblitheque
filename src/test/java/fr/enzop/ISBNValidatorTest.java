@@ -10,9 +10,9 @@ public class ISBNValidatorTest {
     public void checkValid10CharsISBNCode() {
         ISBNValidator validator = new ISBNValidator();
         boolean result = validator.validateISBN("2210765528");
-        assertTrue(result, "first assertion");
+        assertTrue(result);
         result = validator.validateISBN("2226392122");
-        assertTrue(result, "second assertion");
+        assertTrue(result);
     }
 
     @Test

@@ -24,13 +24,18 @@ public class Reservation {
     @JoinColumn(name = "code")
     private Adherent adherent;
 
+    @ManyToOne
+    @JoinColumn(name = "id")
+    private Book book;
+
     private boolean endReservation = false; // Par defaut fin reservation à faux
 
     public Reservation() {}
 
-    public Reservation(int id, Adherent adherent, boolean endReservation) {
+    public Reservation(int id, Adherent adherent, Book book, boolean endReservation) {
         this.id = id;
         this.adherent = adherent;
+        this.book = book;
         this.endReservation = endReservation;
     }
 }
