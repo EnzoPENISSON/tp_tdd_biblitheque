@@ -73,9 +73,9 @@ public class LibraryController {
                 .toList();
     }
 
-    private BookResponse convert(Book chambre) {
+    private BookResponse convert(Book book) {
         BookResponse resp = BookResponse.builder().build();
-        BeanUtils.copyProperties(chambre, resp);
+        BeanUtils.copyProperties(book, resp);
         return resp;
     }
 }

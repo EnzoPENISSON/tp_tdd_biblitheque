@@ -21,7 +21,6 @@ public class Book {
     private boolean available;
     private Format format;
 
-    // Default constructor required for JPA
     public Book() {}
 
     public Book(int id, String title, String author, boolean available, String publisher, Format format, String isbn) {
