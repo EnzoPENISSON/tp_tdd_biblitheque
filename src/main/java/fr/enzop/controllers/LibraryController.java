@@ -42,9 +42,16 @@ public class LibraryController {
         BeanUtils.copyProperties(request, bookToUpdate);
         this.bookRepository.save(bookToUpdate);
         log.debug("Livre modifier");
-        return convert(bookToUpdate);
 
+        return convert(bookToUpdate);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void SupprimmerLivre(@PathVariable int id) {
+        this.bookRepository.deleteById(id);
+    }
+
 
     private BookResponse convert(Book chambre) {
         BookResponse resp = BookResponse.builder().build();
