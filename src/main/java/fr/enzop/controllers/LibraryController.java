@@ -23,7 +23,7 @@ public class LibraryController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public int AjoutLivre(@RequestBody BookRequest request) {
+    public BookResponse AjoutLivre(@RequestBody BookRequest request) {
         Book book = new Book();
         BeanUtils.copyProperties(request, book);
 
@@ -31,7 +31,7 @@ public class LibraryController {
 
         log.debug("Livre ajouter");
 
-        return book.getId();
+        return convert(book);
     }
 
     @PutMapping("/{id}")

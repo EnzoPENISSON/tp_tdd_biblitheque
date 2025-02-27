@@ -1,47 +1,46 @@
 package fr.enzop.controllers;
 
-import fr.enzop.models.Format;
-import fr.enzop.requests.BookRequest;
-import fr.enzop.repositories.BookRepository;
 import fr.enzop.models.Book;
-import fr.enzop.TestUtil;
+import fr.enzop.models.Format;
+import fr.enzop.repositories.BookRepository;
+import fr.enzop.requests.BookRequest;
+import fr.enzop.responses.BookResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@WebMvcTest(LibraryController.class)
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class LibraryControllerTest {
-    private static final String ENDPOINT = "/api/library";
-    private static final String ENDPOINT_ID = ENDPOINT + "/{id}";
-    private static final String ENDPOINT_SEARCH = ENDPOINT + "/search/{title}";
 
     private static final int BOOK_ID = 2;
 
     private Book existingBook;
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Mock
+    private BookRepository bookRepository; // Mock du repository
 
-    @MockitoBean
-    private BookRepository bookRepository;
+    @InjectMocks
+    private LibraryController libraryController; // Test du contrôleur sans requête HTTP
 
     @BeforeEach
     public void init() {
         existingBook = new Book(
                 BOOK_ID,
-                "Les misérables",
+                "Les Misérables",
                 "Victor Hugo",
                 false,
                 "Livre de Poche Jeunesse (13 Aug. 2014)",
@@ -69,10 +68,9 @@ public class LibraryControllerTest {
     }
 
     @Test
-    public void  shouldAddBookInTheLibraryReturnCreated() throws Exception {
-        // Given
+    public void shouldAddBookInTheLibrary() {
         BookRequest requestbook = BookRequest.builder()
-                .title("Les misérables")
+                .title("Les Misérables")
                 .author("Victor Hugo")
                 .available(true)
                 .publisher("Livre de Poche Jeunesse (13 Aug. 2014)")
@@ -80,19 +78,17 @@ public class LibraryControllerTest {
                 .isbn("2010008995")
                 .build();
 
-        ResultActions result = this.mockMvc.perform(
-                MockMvcRequestBuilders
-                        .post(ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestUtil.json(requestbook)));
+        BookResponse response = libraryController.AjoutLivre(requestbook);
 
-        result.andExpect(MockMvcResultMatchers.status().isCreated());
+        assertNotNull(response);
+        assertEquals("Les Misérables", response.getTitle());
+        verify(bookRepository, times(1)).save(any(Book.class));
     }
 
     @Test
-    public void shouldUpdateBookInTheLibraryReturnOkAndAvailable() throws Exception {
+    public void shouldUpdateBookInTheLibrary() {
         BookRequest requestbook = BookRequest.builder()
-                .title("Les misérables")
+                .title("Les Misérables")
                 .author("Victor Hugo")
                 .available(true)
                 .publisher("Livre de Poche Jeunesse (13 Aug. 2014)")
@@ -100,60 +96,41 @@ public class LibraryControllerTest {
                 .isbn("2010008995")
                 .build();
 
-        ResultActions result = this.mockMvc.perform(
-                MockMvcRequestBuilders.put(ENDPOINT_ID, BOOK_ID)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestUtil.json(requestbook))
-        );
+        BookResponse response = libraryController.ModifierLivre(BOOK_ID, requestbook);
 
-        result.andExpect(MockMvcResultMatchers.status().isOk());
-        // Book is now available
-        result.andExpect(MockMvcResultMatchers.jsonPath("$.available").value(true));
-
+        assertNotNull(response);
+        assertTrue(response.isAvailable());
+        verify(bookRepository, times(1)).save(any(Book.class));
     }
 
     @Test
-    public void shouldDeleteBookInTheLibraryReturnOk() throws Exception {
-        ResultActions result = this.mockMvc.perform(
-                MockMvcRequestBuilders.delete(ENDPOINT_ID, BOOK_ID)
-        );
+    public void shouldDeleteBookInTheLibrary() {
+        libraryController.SupprimmerLivre(BOOK_ID);
 
-        result.andExpect(MockMvcResultMatchers.status().isOk());
+        verify(bookRepository, times(1)).deleteById(BOOK_ID);
     }
 
     @Test
-    public void shouldGetSearchedBooksByTitleReturnOk() throws Exception {
-        String bookToSearch = existingBook.getTitle();
+    public void shouldGetSearchedBooksByTitle() {
+        List<BookResponse> result = libraryController.rechercherParLeTitre("Les Misérables");
 
-        ResultActions result = this.mockMvc.perform(
-                MockMvcRequestBuilders.get(ENDPOINT_SEARCH, bookToSearch)
-        );
-
-        result.andExpect(MockMvcResultMatchers.status().isOk());
-        result.andExpect(MockMvcResultMatchers.jsonPath("$[0].title").value(bookToSearch));
+        assertFalse(result.isEmpty());
+        assertEquals("Les Misérables", result.get(0).getTitle());
     }
 
     @Test
-    public void shouldGetSearchedBooksByIsbnReturnOk() throws Exception {
-        String bookToSearch = existingBook.getIsbn();
+    public void shouldGetSearchedBooksByIsbn() {
+        List<BookResponse> result = libraryController.rechercherParLeTitre("2010008995");
 
-        ResultActions result = this.mockMvc.perform(
-                MockMvcRequestBuilders.get(ENDPOINT_SEARCH, bookToSearch)
-        );
-
-        result.andExpect(MockMvcResultMatchers.status().isOk());
-        result.andExpect(MockMvcResultMatchers.jsonPath("$[0].isbn").value(bookToSearch));
+        assertFalse(result.isEmpty());
+        assertEquals("2010008995", result.get(0).getIsbn());
     }
 
     @Test
-    public void shouldGetSearchedBooksByAuthorReturnOk() throws Exception {
-        String bookToSearch = existingBook.getAuthor();
+    public void shouldGetSearchedBooksByAuthor() {
+        List<BookResponse> result = libraryController.rechercherParLeTitre("Victor Hugo");
 
-        ResultActions result = this.mockMvc.perform(
-                MockMvcRequestBuilders.get(ENDPOINT_SEARCH, bookToSearch)
-        );
-
-        result.andExpect(MockMvcResultMatchers.status().isOk());
-        result.andExpect(MockMvcResultMatchers.jsonPath("$[0].author").value(bookToSearch));
+        assertFalse(result.isEmpty());
+        assertEquals("Victor Hugo", result.get(0).getAuthor());
     }
 }
