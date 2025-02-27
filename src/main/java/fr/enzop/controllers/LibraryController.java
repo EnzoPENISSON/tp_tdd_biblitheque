@@ -23,7 +23,7 @@ public class LibraryController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public String createChambre(@RequestBody BookRequest request) {
+    public int createChambre(@RequestBody BookRequest request) {
         Book book = new Book();
         BeanUtils.copyProperties(request, book);
 
