@@ -2,11 +2,9 @@ package fr.enzop.controllers;
 
 import fr.enzop.models.Format;
 import fr.enzop.requests.BookRequest;
-import fr.enzop.controllers.LibraryController;
 import fr.enzop.repositories.BookRepository;
 import fr.enzop.models.Book;
 import fr.enzop.TestUtil;
-import fr.enzop.requests.BookRequestUpdate;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +16,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.util.Optional;
-import java.util.UUID;
-
 @WebMvcTest(LibraryController.class)
 public class LibraryControllerTest {
     private static final String ENDPOINT = "/api/library";
+    private static final String ENDPOINT_ID = ENDPOINT + "/{id}";
+
+    private static final int BOOK_ID_UPDATE = 2;
 
     @Autowired
     private MockMvc mockMvc;
@@ -32,7 +30,7 @@ public class LibraryControllerTest {
     private BookRepository bookRepository;
 
     @Test
-    public void testAddBook() throws Exception {
+    public void  shouldAddBookInTheLibrary() throws Exception {
         // Given
         BookRequest requestbook = BookRequest.builder()
                 .title("Les misérables")
@@ -61,24 +59,8 @@ public class LibraryControllerTest {
     }
 
     @Test
-    public void testEditBook() throws Exception {
-        // Given
-        int bookId = 2;
-
-        // Simulated existing book in the repository
-        Book existingBook = new Book(
-                bookId,
-                "Les misérables",
-                "Victor Hugo",
-                false,
-                "Livre de Poche Jeunesse (13 Aug. 2014)",
-                Format.POCHE,
-                "2010008995"
-        );
-
-        // Updated book request
-        BookRequestUpdate requestbook = BookRequestUpdate.builder()
-                .id(bookId)
+    public void shouldUpdateBookInTheLibrary() throws Exception {
+        BookRequest requestbook = BookRequest.builder()
                 .title("Les misérables")
                 .author("Victor Hugo")
                 .available(true)
@@ -87,14 +69,8 @@ public class LibraryControllerTest {
                 .isbn("2010008995")
                 .build();
 
-        // Mock findById() to return an existing book
-        Mockito.when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
-
-        Mockito.when(bookRepository.save(Mockito.any(Book.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
         ResultActions result = this.mockMvc.perform(
-                MockMvcRequestBuilders.put(ENDPOINT)
+                MockMvcRequestBuilders.put(ENDPOINT_ID, BOOK_ID_UPDATE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(TestUtil.json(requestbook))
         );
