@@ -1,5 +1,6 @@
 package fr.enzop.controllers;
 
+import fr.enzop.exceptions.InvalidIsbnException;
 import fr.enzop.models.Book;
 import fr.enzop.models.Format;
 import fr.enzop.repositories.BookRepository;
@@ -83,6 +84,20 @@ public class LibraryControllerTest {
         assertNotNull(response);
         assertEquals("Les Misérables", response.getTitle());
         verify(bookRepository, times(1)).save(any(Book.class));
+    }
+
+    @Test
+    public void shouldNotAddBookInTheLibrary(){
+        BookRequest requestbook = BookRequest.builder()
+                .title("Les Misérables")
+                .author("Victor Hugo")
+                .available(true)
+                .publisher("Livre de Poche Jeunesse (13 Aug. 2014)")
+                .format(Format.POCHE)
+                .isbn("2010008996") // Mauvaise Clef
+                .build();
+
+        assertThrows(InvalidIsbnException.class, () -> libraryController.AjoutLivre(requestbook));
     }
 
     @Test

@@ -1,5 +1,7 @@
 package fr.enzop.controllers;
 
+import fr.enzop.ISBNValidator;
+import fr.enzop.exceptions.InvalidIsbnException;
 import fr.enzop.models.Book;
 import fr.enzop.repositories.BookRepository;
 import fr.enzop.requests.BookRequest;
@@ -7,6 +9,7 @@ import fr.enzop.responses.BookResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import fr.enzop.exceptions.BookNotFound;
@@ -24,6 +27,12 @@ public class LibraryController {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public BookResponse AjoutLivre(@RequestBody BookRequest request) {
+        ISBNValidator isbnValidator = new ISBNValidator();
+
+        if (!isbnValidator.validateISBN(request.getIsbn())){
+            throw new InvalidIsbnException();
+        }
+
         Book book = new Book();
         BeanUtils.copyProperties(request, book);
 
