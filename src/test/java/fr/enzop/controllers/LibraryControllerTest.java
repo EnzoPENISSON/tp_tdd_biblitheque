@@ -1,6 +1,7 @@
 package fr.enzop.controllers;
 
 import fr.enzop.exceptions.InvalidIsbnException;
+import fr.enzop.exceptions.MissingParameterException;
 import fr.enzop.models.Book;
 import fr.enzop.models.Format;
 import fr.enzop.repositories.BookRepository;
@@ -103,12 +104,10 @@ public class LibraryControllerTest {
                 .title("Les Misérables")
                 .publisher("Livre de Poche Jeunesse (13 Aug. 2014)")
                 .format(Format.POCHE)
-                .isbn("2010008995") // Mauvaise Clef
+                .isbn("2010008995")
                 .build();
 
-        BookResponse response = libraryController.AjoutLivre(requestbook);
-
-        assertNull(response);
+        assertThrows(MissingParameterException.class, () -> libraryController.AjoutLivre(requestbook));
     }
 
     @Test
@@ -138,7 +137,7 @@ public class LibraryControllerTest {
 
     @Test
     public void shouldGetSearchedBooksByTitle() {
-        List<BookResponse> result = libraryController.rechercherParLeTitre("Les Misérables");
+        List<BookResponse> result = libraryController.rechercher("Les Misérables");
 
         assertFalse(result.isEmpty());
         assertEquals("Les Misérables", result.get(0).getTitle());
@@ -146,7 +145,7 @@ public class LibraryControllerTest {
 
     @Test
     public void shouldGetSearchedBooksByIsbn() {
-        List<BookResponse> result = libraryController.rechercherParLeTitre("2010008995");
+        List<BookResponse> result = libraryController.rechercher("2010008995");
 
         assertFalse(result.isEmpty());
         assertEquals("2010008995", result.get(0).getIsbn());
@@ -154,7 +153,7 @@ public class LibraryControllerTest {
 
     @Test
     public void shouldGetSearchedBooksByAuthor() {
-        List<BookResponse> result = libraryController.rechercherParLeTitre("Victor Hugo");
+        List<BookResponse> result = libraryController.rechercher("Victor Hugo");
 
         assertFalse(result.isEmpty());
         assertEquals("Victor Hugo", result.get(0).getAuthor());

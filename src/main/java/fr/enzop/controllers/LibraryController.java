@@ -6,6 +6,7 @@ import fr.enzop.models.Book;
 import fr.enzop.repositories.BookRepository;
 import fr.enzop.requests.BookRequest;
 import fr.enzop.responses.BookResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import fr.enzop.exceptions.BookNotFound;
+import fr.enzop.exceptions.MissingParameterException;
 
 import java.util.List;
 
@@ -27,6 +29,10 @@ public class LibraryController {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public BookResponse AjoutLivre(@RequestBody BookRequest request) {
+        if (request == null || !request.paramsSet()) {
+            throw new MissingParameterException();
+        }
+
         ISBNValidator isbnValidator = new ISBNValidator();
 
         if (!isbnValidator.validateISBN(request.getIsbn())){
@@ -38,8 +44,6 @@ public class LibraryController {
 
         this.bookRepository.save(book);
 
-        log.debug("Livre ajouter");
-
         return convert(book);
     }
 
@@ -50,7 +54,6 @@ public class LibraryController {
 
         BeanUtils.copyProperties(request, bookToUpdate);
         this.bookRepository.save(bookToUpdate);
-        log.debug("Livre modifier");
 
         return convert(bookToUpdate);
     }
@@ -63,7 +66,7 @@ public class LibraryController {
 
     @GetMapping("/search/{search}")
     @ResponseStatus(HttpStatus.OK)
-    public List<BookResponse> rechercherParLeTitre(@PathVariable String search) {
+    public List<BookResponse> rechercher(@PathVariable String search) {
         return this.bookRepository.findAllByTitleContainingIgnoreCase(search)
                 .stream()
                 .map(this::convert)

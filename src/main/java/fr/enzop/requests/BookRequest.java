@@ -14,16 +14,18 @@ import lombok.*;
 @Setter
 @Builder
 public class BookRequest {
-    @NotBlank @NotNull
     private String isbn;
-    @NotBlank @NotNull
     private String title;
-    @NotBlank @NotNull
     private String author;
-    @NotBlank @NotNull
     private String publisher;
-    @NotBlank @NotNull
     private Format format;
-    @NotNull
     private boolean available;
+
+    public boolean paramsSet() {
+        return title != null && !title.isBlank() &&
+                author != null && !author.isBlank() &&
+                isbn != null && !isbn.isBlank() &&
+                publisher != null && !publisher.isBlank() &&
+                format != null;
+    }
 }
