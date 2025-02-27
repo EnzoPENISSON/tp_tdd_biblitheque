@@ -1,35 +1,37 @@
 package fr.enzop.controllers;
 
-import fr.enzop.TestUtil;
 import fr.enzop.models.Format;
-import fr.enzop.repositories.BookRepository;
 import fr.enzop.requests.BookRequest;
-import org.junit.jupiter.api.BeforeEach;
+import fr.enzop.controllers.LibraryController;
+import fr.enzop.repositories.BookRepository;
 import fr.enzop.models.Book;
+import fr.enzop.TestUtil;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.UUID;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@TestConfiguration
+@WebMvcTest(LibraryController.class)
 public class LibraryControllerTest {
     private static final String ENDPOINT = "/api/library";
-    private static final String ENDPOINT_ID = ENDPOINT + "/{id}";
 
     @Autowired
     private MockMvc mockMvc;
 
+    @MockitoBean
+    private BookRepository bookRepository;
+
     @Test
     public void testAddBook() throws Exception {
+        // Given
         BookRequest requestbook = BookRequest.builder()
                 .title("Les misérables")
                 .author("Victor Hugo")
@@ -39,14 +41,22 @@ public class LibraryControllerTest {
                 .isbn("2010008995")
                 .build();
 
-        // when
+        // Simuler l'enregistrement du livre
+        Mockito.when(bookRepository.save(Mockito.any(Book.class)))
+                .thenAnswer(invocation -> {
+                    Book savedBook = invocation.getArgument(0);
+                    savedBook.setId(String.valueOf(UUID.randomUUID())); // Simule un ID généré
+                    return savedBook;
+                });
+
+        // When
         ResultActions result = this.mockMvc.perform(
                 MockMvcRequestBuilders
                         .post(ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(TestUtil.json(requestbook)));
 
-        // then
+        // Then
         result.andExpect(MockMvcResultMatchers.status().isCreated());
     }
 }
