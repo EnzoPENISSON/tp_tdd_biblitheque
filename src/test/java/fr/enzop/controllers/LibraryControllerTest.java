@@ -5,6 +5,7 @@ import fr.enzop.requests.BookRequest;
 import fr.enzop.repositories.BookRepository;
 import fr.enzop.models.Book;
 import fr.enzop.TestUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,24 +23,40 @@ import java.util.Optional;
 public class LibraryControllerTest {
     private static final String ENDPOINT = "/api/library";
     private static final String ENDPOINT_ID = ENDPOINT + "/{id}";
+    private static final String ENDPOINT_SEARCH = ENDPOINT + "/search";
 
     private static final int BOOK_ID = 2;
 
-    private static final Book existingBook = new Book(
-            BOOK_ID,
-            "Les misérables",
-            "Victor Hugo",
-            false,
-            "Livre de Poche Jeunesse (13 Aug. 2014)",
-            Format.POCHE,
-            "2010008995"
-    );
+    private Book existingBook;
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
     private BookRepository bookRepository;
+
+    @BeforeEach
+    public void init() {
+        existingBook = new Book(
+                BOOK_ID,
+                "Les misérables",
+                "Victor Hugo",
+                false,
+                "Livre de Poche Jeunesse (13 Aug. 2014)",
+                Format.POCHE,
+                "2010008995"
+        );
+
+        // Mock findById() to return an existing book
+        Mockito.when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(existingBook));
+
+        // Mock save() to return the saved book
+        Mockito.when(bookRepository.save(Mockito.any(Book.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Mock deleteById() to do nothing
+        Mockito.doNothing().when(bookRepository).deleteById(BOOK_ID);
+    }
 
     @Test
     public void  shouldAddBookInTheLibraryReturnCreated() throws Exception {
@@ -52,14 +69,6 @@ public class LibraryControllerTest {
                 .format(Format.POCHE)
                 .isbn("2010008995")
                 .build();
-
-        // Simuler l'enregistrement du livre
-        Mockito.when(bookRepository.save(Mockito.any(Book.class)))
-                .thenAnswer(invocation -> {
-                    Book savedBook = invocation.getArgument(0);
-                    savedBook.setId(BOOK_ID); // Simule un ID généré
-                    return savedBook;
-                });
 
         ResultActions result = this.mockMvc.perform(
                 MockMvcRequestBuilders
@@ -80,14 +89,6 @@ public class LibraryControllerTest {
                 .format(Format.POCHE)
                 .isbn("2010008995")
                 .build();
-
-        // Mock findById() to return an existing book
-        Mockito.when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(existingBook));
-
-        // Mock save() to return the updated book
-        Mockito.when(bookRepository.save(Mockito.any(Book.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
 
         ResultActions result = this.mockMvc.perform(
                 MockMvcRequestBuilders.put(ENDPOINT_ID, BOOK_ID)
@@ -110,5 +111,14 @@ public class LibraryControllerTest {
         result.andExpect(MockMvcResultMatchers.status().isOk());
     }
 
+    @Test void shouldGetSearchedBooksByTitleReturnOk() throws Exception {
+        String bookToSearch = existingBook.getTitle();
 
+        ResultActions result = this.mockMvc.perform(
+                MockMvcRequestBuilders.get(ENDPOINT_SEARCH, bookToSearch)
+        );
+
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+        result.andExpect(MockMvcResultMatchers.jsonPath("$[0].title").value(bookToSearch));
+    }
 }
