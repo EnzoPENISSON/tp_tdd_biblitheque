@@ -67,7 +67,7 @@ public class AdherentServiceTest {
         Mockito.when(mockDbService.addAdherent(Mockito.any(AdherentRequest.class)))
                 .thenReturn(existingAdherent);
 
-        AdherentResponse response = adherentController.AjoutAdherent(requestadherent);
+        Adherent response = mockDbService.addAdherent(requestadherent);
 
         assertNotNull(response);
         assertEquals("Chemin", response.getNom());
@@ -101,7 +101,7 @@ public class AdherentServiceTest {
 
         Mockito.when(mockDbService.updateAdherent(requestadherent,ADHERENT_ID)).thenReturn(existingAdherent);
 
-        AdherentResponse response = adherentController.ModifierAdherent(ADHERENT_ID, requestadherent);
+        Adherent response = mockDbService.updateAdherent(requestadherent,ADHERENT_ID);
 
         assertNotNull(response);
         verify(mockDbService, times(1)).updateAdherent(any(AdherentRequest.class), eq(ADHERENT_ID));
@@ -109,7 +109,7 @@ public class AdherentServiceTest {
 
     @Test
     public void shouldDeleteAdherent() {
-        adherentController.SupprimmerAdherent(ADHERENT_ID);
+        mockDbService.deleteAdherent(ADHERENT_ID);
 
         verify(mockDbService, times(1)).deleteAdherent(ADHERENT_ID);
     }
