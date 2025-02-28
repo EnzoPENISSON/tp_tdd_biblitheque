@@ -1,24 +1,13 @@
 package fr.enzop.controllers;
 
-import fr.enzop.ISBNValidator;
-import fr.enzop.exceptions.BookNotFound;
-import fr.enzop.exceptions.InvalidIsbnException;
-import fr.enzop.exceptions.MissingParameterException;
-import fr.enzop.models.Book;
 import fr.enzop.models.Reservation;
-import fr.enzop.repositories.ReservationRepository;
-import fr.enzop.requests.BookRequest;
 import fr.enzop.requests.ReservationRequest;
-import fr.enzop.responses.BookResponse;
 import fr.enzop.responses.ReservationResponse;
 import fr.enzop.services.ReservationService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/reservation")
@@ -31,8 +20,26 @@ public class ReservationController {
         this.reservationService = reservationService;
     }
 
+    @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReservationResponse reserver(@RequestBody ReservationRequest request) {
+        Reservation reservation = this.reservationService.addReservation(request);
+        return convert(reservation);
+    }
 
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ReservationResponse ModifierReservation(@PathVariable int id, @RequestBody ReservationRequest request) {
+        Reservation reservationToUpdate = this.reservationService.updateReservation(request,id);
 
+        return convert(reservationToUpdate);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void AnnulerReservation(@PathVariable int id) {
+        this.reservationService.deleteReservation(id);
+    }
 
     private ReservationResponse convert(Reservation reservation) {
         ReservationResponse resp = ReservationResponse.builder().build();
