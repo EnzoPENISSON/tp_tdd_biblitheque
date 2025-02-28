@@ -1,5 +1,7 @@
 package fr.enzop.services;
 
+import fr.enzop.exceptions.TooManyReservationsException;
+import fr.enzop.models.Adherent;
 import fr.enzop.models.Reservation;
 import fr.enzop.repositories.ReservationRepository;
 import fr.enzop.requests.ReservationRequest;
@@ -20,6 +22,10 @@ public class ReservationService {
     }
 
     public Reservation addReservation(ReservationRequest reservationRequest) {
+        if (countOpenReservationsByAdherent(reservationRequest.getAdherent()) == 3) {
+            throw new TooManyReservationsException("L'adhérent a déjà 3 réservations ouvertes");
+        }
+
         Reservation reservation = new Reservation();
         BeanUtils.copyProperties(reservationRequest, reservation);
         return reservationRepository.save(reservation);
@@ -34,6 +40,13 @@ public class ReservationService {
         BeanUtils.copyProperties(reservationRequest, reservationtoUpdate);
         return reservationRepository.save(reservationtoUpdate);
     }
+
+    public int countOpenReservationsByAdherent(Adherent adherent) {
+        return (int) adherent.getReservations().stream()
+                .filter(reservation -> !reservation.isEndReservation()) // Ne compte que celles qui ne sont pas terminées
+                .count();
+    }
+
 
     public void deleteReservation(int id) {
         reservationRepository.deleteById(id);

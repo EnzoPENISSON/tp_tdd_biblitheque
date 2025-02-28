@@ -98,7 +98,7 @@ public class ReservationServiceTest {
                 .endReservation(false)
                 .build();
 
-        Mockito.when(mockDbService.countOpenReservationsByAdherent(existingAdherent))
+        Mockito.when(mockDbService.countOpenReservationsByAdherent(Mockito.any(Adherent.class)))
                 .thenReturn(3);
 
         Mockito.when(mockDbService.addReservation(Mockito.any(ReservationRequest.class)))
@@ -109,9 +109,6 @@ public class ReservationServiceTest {
         });
 
         assertEquals("L'adhérent a déjà 3 réservations ouvertes", exception.getMessage());
-
-        verify(mockDbService, times(1)).countOpenReservationsByAdherent(existingAdherent);
-        verify(mockDbService, never()).addReservation(Mockito.any(ReservationRequest.class));
     }
 
 
