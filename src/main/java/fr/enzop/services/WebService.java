@@ -16,12 +16,6 @@ public class WebService {
         this.restTemplate = restTemplate;
     }
 
-    public Optional<Book> fetchBookById(int id) {
-        String url = API_BASE_URL + "/" + id;
-        Book book = restTemplate.getForObject(url, Book.class);
-        return Optional.ofNullable(book);
-    }
-
     public Optional<Book> fetchBookByIsbn(String isbn) {
         String url = API_BASE_URL + "?isbn=" + isbn;
         Book book = restTemplate.getForObject(url, Book.class);

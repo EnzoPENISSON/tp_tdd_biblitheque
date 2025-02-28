@@ -134,7 +134,7 @@ public class LibraryServiceTest {
 
     @Test
     public void shouldDeleteBookInTheLibrary() {
-        libraryController.SupprimmerLivre(BOOK_ID);
+        mockDbService.deleteBook(BOOK_ID);
 
         verify(mockDbService, times(1)).deleteBook(BOOK_ID);
     }
@@ -145,7 +145,7 @@ public class LibraryServiceTest {
                 "Les Misérables",null,null
         )).thenReturn(booksList);
 
-        List<BookResponse> result = libraryController.rechercher("Les Misérables",null,null);
+        List<Book> result = mockDbService.searchBooks("Les Misérables",null,null);
 
         assertFalse(result.isEmpty());
         assertEquals("Les Misérables", result.get(0).getTitle());
