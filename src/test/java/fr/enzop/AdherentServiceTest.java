@@ -1,26 +1,17 @@
 package fr.enzop;
 
-import fr.enzop.controllers.AdherentController;
-import fr.enzop.controllers.LibraryController;
-import fr.enzop.exceptions.InvalidIsbnException;
 import fr.enzop.exceptions.MissingParameterException;
 import fr.enzop.models.Adherent;
 import fr.enzop.models.Civilite;
 import fr.enzop.repositories.AdherentRepository;
 import fr.enzop.requests.AdherentRequest;
-import fr.enzop.requests.BookRequest;
-import fr.enzop.responses.AdherentResponse;
 import fr.enzop.services.AdherentService;
-import fr.enzop.services.BookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -29,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public class AdherentServiceTest {
 
     private static final int ADHERENT_ID = 2;
@@ -37,80 +27,87 @@ public class AdherentServiceTest {
     @Mock
     private AdherentRepository adherentRepository;
 
-    AdherentService mockDbService;
-    AdherentController adherentController;
+    @InjectMocks
+    private AdherentService adherentService; // Real service implementation
 
-    private Adherent existingAdherent = new Adherent(
-            ADHERENT_ID,
-            "Chemin",
-            "Luc",
-            "luc@gmail.com",
-            LocalDateTime.parse("2000-11-01T00:00:00"),
-            Civilite.HOMME
-    );
+    private Adherent existingAdherent;
 
     @BeforeEach
     public void init() {
-        mockDbService = mock(AdherentService.class);
-        adherentController = new AdherentController(mockDbService);
+        existingAdherent = new Adherent(
+                ADHERENT_ID,
+                "Chemin",
+                "Luc",
+                "luc@gmail.com",
+                LocalDateTime.parse("2000-11-01T00:00:00"),
+                Civilite.HOMME
+        );
     }
 
     @Test
     public void shouldAddAdherent() {
-        AdherentRequest requestadherent = AdherentRequest.builder()
+        AdherentRequest requestAdherent = AdherentRequest.builder()
                 .nom("Chemin")
                 .prenom("Luc")
+                .email("luc@gmail.com")
                 .dateNaissance(LocalDateTime.parse("2000-11-01T00:00:00"))
                 .civilite(Civilite.HOMME)
                 .build();
 
-        Mockito.when(mockDbService.addAdherent(Mockito.any(AdherentRequest.class)))
-                .thenReturn(existingAdherent);
+        when(adherentRepository.save(any(Adherent.class))).thenReturn(existingAdherent);
 
-        Adherent response = mockDbService.addAdherent(requestadherent);
+        Adherent response = adherentService.addAdherent(requestAdherent);
 
         assertNotNull(response);
         assertEquals("Chemin", response.getNom());
         assertEquals("Luc", response.getPrenom());
-        assertEquals(LocalDateTime.parse("2000-11-01T00:00:00"), response.getDateNaissance());
-        verify(mockDbService, times(1)).addAdherent(any(AdherentRequest.class));
+        verify(adherentRepository, times(1)).save(any(Adherent.class));
     }
 
     @Test
     public void shouldNotAddAdherentMissingParameters() {
-        AdherentRequest requestadherent = AdherentRequest.builder()
+        AdherentRequest requestAdherent = AdherentRequest.builder()
                 .nom("Chemin")
                 .dateNaissance(LocalDateTime.parse("2000-11-01T00:00:00"))
                 .civilite(Civilite.HOMME)
-                .build();
+                .build(); // Missing "prenom" and "email"
 
-        Mockito.when(mockDbService.addAdherent(Mockito.any(AdherentRequest.class)))
-                .thenThrow(new MissingParameterException());
-
-        assertThrows(MissingParameterException.class, () -> mockDbService.addAdherent(requestadherent));
+        assertThrows(MissingParameterException.class, () -> adherentService.addAdherent(requestAdherent));
     }
 
     @Test
     public void shouldUpdateAdherent() {
-        AdherentRequest requestadherent = AdherentRequest.builder()
+        AdherentRequest requestAdherent = AdherentRequest.builder()
                 .nom("Parchemin")
                 .prenom("Luc")
+                .email("luc@gmail.com")
                 .dateNaissance(LocalDateTime.parse("2000-11-01T00:00:00"))
                 .civilite(Civilite.HOMME)
                 .build();
 
-        Mockito.when(mockDbService.updateAdherent(requestadherent,ADHERENT_ID)).thenReturn(existingAdherent);
+        when(adherentRepository.findById(ADHERENT_ID)).thenReturn(Optional.of(existingAdherent));
+        when(adherentRepository.save(any(Adherent.class))).thenReturn(existingAdherent);
 
-        Adherent response = mockDbService.updateAdherent(requestadherent,ADHERENT_ID);
+        Adherent response = adherentService.updateAdherent(requestAdherent, ADHERENT_ID);
 
         assertNotNull(response);
-        verify(mockDbService, times(1)).updateAdherent(any(AdherentRequest.class), eq(ADHERENT_ID));
+        verify(adherentRepository, times(1)).save(any(Adherent.class));
     }
 
     @Test
     public void shouldDeleteAdherent() {
-        mockDbService.deleteAdherent(ADHERENT_ID);
+        when(adherentRepository.findById(ADHERENT_ID)).thenReturn(Optional.of(existingAdherent));
+        doNothing().when(adherentRepository).delete(existingAdherent);
 
-        verify(mockDbService, times(1)).deleteAdherent(ADHERENT_ID);
+        adherentService.deleteAdherent(ADHERENT_ID);
+
+        verify(adherentRepository, times(1)).delete(existingAdherent);
+    }
+
+    @Test
+    public void shouldNotDeleteNonExistingAdherent() {
+        when(adherentRepository.findById(ADHERENT_ID)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> adherentService.deleteAdherent(ADHERENT_ID));
     }
 }

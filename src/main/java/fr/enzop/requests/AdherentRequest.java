@@ -16,10 +16,11 @@ import java.util.Date;
 public class AdherentRequest {
     private String nom;
     private String prenom;
+    private String email;
     private LocalDateTime dateNaissance;
     private Civilite civilite;
 
     public boolean paramsSet() {
-        return nom != null && prenom != null && dateNaissance != null && civilite != null;
+        return nom != null && prenom != null && email != null && dateNaissance != null && civilite != null;
     }
 }
