@@ -21,6 +21,8 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -59,8 +61,11 @@ public class ReservationServiceTest {
             RESERVATION_ID,
             existingAdherent,
             existingBook,
+            LocalDateTime.parse("2024-09-01T00:00:00"),
             false
     );
+
+    List<Reservation> reservationList = new ArrayList<>();
 
     @BeforeEach
     public void init() {
@@ -75,6 +80,8 @@ public class ReservationServiceTest {
                 .book(existingBook)
                 .endReservation(false)
                 .build();
+
+        reservationList.add(existingReservation);
 
         Mockito.when(mockDbService.addReservation(Mockito.any(ReservationRequest.class)))
                 .thenReturn(existingReservation);
@@ -114,7 +121,12 @@ public class ReservationServiceTest {
 
     @Test
     void testCreerReservation_ExceedsMaxDuration() {
-        assertTrue(true);
+        Mockito.when(mockDbService.getAllReservationAdherent(Mockito.any(Adherent.class)))
+                .thenReturn(reservationList);
+
+        boolean isExpired = existingReservation.getDateReservation().plusMonths(4).isBefore(LocalDateTime.now());
+
+        assertTrue(isExpired);
     }
 
     @Test

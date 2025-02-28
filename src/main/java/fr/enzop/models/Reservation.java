@@ -28,14 +28,17 @@ public class Reservation {
     @JoinColumn(name = "id")
     private Book book;
 
+    private LocalDateTime dateReservation;
+
     private boolean endReservation = false; // Par defaut fin reservation à faux
 
     public Reservation() {}
 
-    public Reservation(int id, Adherent adherent, Book book, boolean endReservation) {
+    public Reservation(int id, Adherent adherent, Book book,LocalDateTime dateReservation, boolean endReservation) {
         this.id = id;
         this.adherent = adherent;
         this.book = book;
+        this.dateReservation = dateReservation;
         this.endReservation = endReservation;
     }
 }
