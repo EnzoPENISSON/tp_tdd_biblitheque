@@ -105,5 +105,7 @@ public class ReservationService {
         reservationRepository.deleteById(isbn);
     }
 
-
+    public List<Reservation> getAllOpenReservation() {
+        return reservationRepository.findByEndReservationFalse();
+    }
 }
