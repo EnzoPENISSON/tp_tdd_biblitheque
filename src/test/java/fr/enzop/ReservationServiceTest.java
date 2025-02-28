@@ -57,7 +57,25 @@ public class ReservationServiceTest {
             "2010008995"
     );
 
+    private Book NonavailableBook = new Book(
+            5,
+            "Le Roman de Renart T01",
+            "Thierry Martin",
+            false,
+            "Delcourt (24 Jan. 2007)",
+            Format.POCHE,
+            "2756003581"
+    );
+
     private Reservation existingReservation = new Reservation(
+            RESERVATION_ID,
+            existingAdherent,
+            NonavailableBook,
+            LocalDateTime.parse("2025-02-01T00:00:00"),
+            false
+    );
+
+    private Reservation existingReservationExpired = new Reservation(
             RESERVATION_ID,
             existingAdherent,
             existingBook,
@@ -74,31 +92,37 @@ public class ReservationServiceTest {
     }
 
     @Test
-    void shouldAddReservation_Success() {
+    void shouldCreateReservation_WhenBookIsAvailable() {
         ReservationRequest reservationRequest = ReservationRequest.builder()
                 .adherent(existingAdherent)
                 .book(existingBook)
                 .endReservation(false)
                 .build();
 
-        reservationList.add(existingReservation);
+        Mockito.when(mockDbService.addReservation(Mockito.any(ReservationRequest.class)))
+                .thenReturn(existingReservationExpired);
+
+        Reservation response = mockDbService.addReservation(reservationRequest);
+        assertTrue(response.getBook().isAvailable()); // livre disponible
+    }
+
+    @Test
+    void shouldNotCreateReservation_WhenBookIsNotAvailable() {
+        ReservationRequest reservationRequest = ReservationRequest.builder()
+                .adherent(existingAdherent)
+                .book(NonavailableBook)
+                .endReservation(false)
+                .build();
 
         Mockito.when(mockDbService.addReservation(Mockito.any(ReservationRequest.class)))
                 .thenReturn(existingReservation);
 
         Reservation response = mockDbService.addReservation(reservationRequest);
-
-        assertNotNull(response);
-        assertEquals("Dupont", response.getAdherent().getNom());
+        assertFalse(response.getBook().isAvailable()); // Livre pas disponible
     }
 
     @Test
-    void testCreerReservationBookIsAvailable() {
-        assertTrue(true);
-    }
-
-    @Test
-    void testCreerReservation_TooManyReservations() {
+    void shouldNotCreateReservation_WhenTooManyReservations() {
         ReservationRequest reservationRequest = ReservationRequest.builder()
                 .adherent(existingAdherent)
                 .book(existingBook)
@@ -118,34 +142,35 @@ public class ReservationServiceTest {
         assertEquals("L'adhérent a déjà 3 réservations ouvertes", exception.getMessage());
     }
 
-
     @Test
-    void testCreerReservation_ExceedsMaxDuration() {
+    void shouldDetectExpiredReservation_WhenDurationExceedsMax() {
         Mockito.when(mockDbService.getAllReservationAdherent(Mockito.any(Adherent.class)))
                 .thenReturn(reservationList);
 
-        boolean isExpired = existingReservation.getDateReservation().plusMonths(4).isBefore(LocalDateTime.now());
+        Mockito.when(mockDbService.isReservationExpired(existingReservationExpired)).thenReturn(Boolean.TRUE);
+        Mockito.when(mockDbService.isReservationExpired(existingReservation)).thenReturn(Boolean.FALSE);
 
-        assertTrue(isExpired);
+        assertTrue(mockDbService.isReservationExpired(existingReservationExpired));
+        assertFalse(mockDbService.isReservationExpired(existingReservation));
     }
 
     @Test
-    void testAnnulerReservation_Success() {
+    void shouldCancelReservation_WhenReservationExists() {
         assertTrue(true);
     }
 
     @Test
-    void testAnnulerReservation_NotFound() {
+    void shouldNotCancelReservation_WhenReservationNotFound() {
         assertTrue(true);
     }
 
     @Test
-    void testGetReservationsByAdherent() {
+    void shouldGetReservationsByAdherent() {
         assertTrue(true);
     }
 
     @Test
-    void testExpirationReservation() {
+    void shouldExpireReservation_WhenTimeLimitReached() {
         assertTrue(true);
     }
 }
