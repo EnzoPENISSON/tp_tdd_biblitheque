@@ -1,13 +1,8 @@
 package fr.enzop.services;
 
-import fr.enzop.ISBNValidator;
-import fr.enzop.exceptions.BookNotFound;
-import fr.enzop.exceptions.InvalidIsbnException;
-import fr.enzop.exceptions.MissingParameterException;
-import fr.enzop.models.Book;
 import fr.enzop.models.Reservation;
 import fr.enzop.repositories.ReservationRepository;
-import fr.enzop.requests.BookRequest;
+import fr.enzop.requests.ReservationRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +16,12 @@ public class ReservationService {
 
     public ReservationService(ReservationRepository reservationRepository) {
         this.reservationRepository = reservationRepository;
+    }
+
+    public Reservation reserver(ReservationRequest reservationRequest) {
+        Reservation reservation = new Reservation();
+        BeanUtils.copyProperties(reservationRequest, reservation);
+        return reservationRepository.save(reservation);
     }
 
     public List<Reservation> getAllReservation() {

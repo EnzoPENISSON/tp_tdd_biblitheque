@@ -11,6 +11,7 @@ import fr.enzop.requests.BookRequest;
 import fr.enzop.requests.ReservationRequest;
 import fr.enzop.responses.BookResponse;
 import fr.enzop.responses.ReservationResponse;
+import fr.enzop.services.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
@@ -21,11 +22,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reservation")
-@RequiredArgsConstructor
 @Log4j2
 public class ReservationController {
 
-    private final ReservationRepository reservationRepository;
+    private final ReservationService reservationService;
+
+    public ReservationController(ReservationService reservationService) {
+        this.reservationService = reservationService;
+    }
 
 
 
