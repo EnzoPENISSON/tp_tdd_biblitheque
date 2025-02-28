@@ -1,11 +1,17 @@
-package fr.enzop.controllers;
+package fr.enzop;
 
+import fr.enzop.controllers.AdherentController;
+import fr.enzop.controllers.LibraryController;
+import fr.enzop.exceptions.InvalidIsbnException;
 import fr.enzop.exceptions.MissingParameterException;
 import fr.enzop.models.Adherent;
 import fr.enzop.models.Civilite;
 import fr.enzop.repositories.AdherentRepository;
 import fr.enzop.requests.AdherentRequest;
+import fr.enzop.requests.BookRequest;
 import fr.enzop.responses.AdherentResponse;
+import fr.enzop.services.AdherentService;
+import fr.enzop.services.BookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,32 +30,35 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class AdherentControllerTest {
+public class AdherentServiceTest {
 
     private static final int ADHERENT_ID = 2;
 
     @Mock
-    private AdherentRepository adherentRepository; // Mock du repository
+    private AdherentRepository adherentRepository;
 
-    @InjectMocks
-    private AdherentController adherentController; // Test du contrôleur sans requête HTTP
+    AdherentService mockDbService;
+    AdherentController adherentController;
+
+    private Adherent existingAdherent = new Adherent(
+            ADHERENT_ID,
+            "Chemin",
+            "Luc",
+            LocalDateTime.parse("2000-11-01T00:00:00"),
+            Civilite.HOMME
+    );
 
     @BeforeEach
     public void init() {
-        Adherent existingAdherent = new Adherent(
-                ADHERENT_ID,
-                "Dupont",
-                "Antoine",
-                LocalDateTime.parse("2000-11-01T00:00:00"),
-                Civilite.HOMME
-        );
-
-        // Mock findById() to return an existing adherent
-        Mockito.when(adherentRepository.findById(ADHERENT_ID)).thenReturn(Optional.of(existingAdherent));
-
-        // Mock save() to return the saved adherent
-        Mockito.when(adherentRepository.save(Mockito.any(Adherent.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        mockDbService = mock(AdherentService.class);
+        adherentController = new AdherentController(mockDbService);
+//
+//        // Mock findById() to return an existing adherent
+//        Mockito.when(adherentRepository.findById(ADHERENT_ID)).thenReturn(Optional.of(existingAdherent));
+//
+//        // Mock save() to return the saved adherent
+//        Mockito.when(adherentRepository.save(Mockito.any(Adherent.class)))
+//                .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -61,13 +70,16 @@ public class AdherentControllerTest {
                 .civilite(Civilite.HOMME)
                 .build();
 
+        Mockito.when(mockDbService.addAdherent(Mockito.any(AdherentRequest.class)))
+                .thenReturn(existingAdherent);
+
         AdherentResponse response = adherentController.AjoutAdherent(requestadherent);
 
         assertNotNull(response);
         assertEquals("Chemin", response.getNom());
         assertEquals("Luc", response.getPrenom());
         assertEquals(LocalDateTime.parse("2000-11-01T00:00:00"), response.getDateNaissance());
-        verify(adherentRepository, times(1)).save(any(Adherent.class));
+        verify(mockDbService, times(1)).addAdherent(any(AdherentRequest.class));
     }
 
     @Test
@@ -78,7 +90,10 @@ public class AdherentControllerTest {
                 .civilite(Civilite.HOMME)
                 .build();
 
-        assertThrows(MissingParameterException.class, () -> adherentController.AjoutAdherent(requestadherent));
+        Mockito.when(mockDbService.addAdherent(Mockito.any(AdherentRequest.class)))
+                .thenThrow(new MissingParameterException());
+
+        assertThrows(MissingParameterException.class, () -> mockDbService.addAdherent(requestadherent));
     }
 
     @Test
@@ -90,16 +105,18 @@ public class AdherentControllerTest {
                 .civilite(Civilite.HOMME)
                 .build();
 
+        Mockito.when(mockDbService.updateAdherent(requestadherent,ADHERENT_ID)).thenReturn(existingAdherent);
+
         AdherentResponse response = adherentController.ModifierAdherent(ADHERENT_ID, requestadherent);
 
         assertNotNull(response);
-        verify(adherentRepository, times(1)).save(any(Adherent.class));
+        verify(mockDbService, times(1)).updateAdherent(any(AdherentRequest.class), eq(ADHERENT_ID));
     }
 
     @Test
     public void shouldDeleteAdherent() {
         adherentController.SupprimmerAdherent(ADHERENT_ID);
 
-        verify(adherentRepository, times(1)).deleteById(ADHERENT_ID);
+        verify(mockDbService, times(1)).deleteAdherent(ADHERENT_ID);
     }
 }

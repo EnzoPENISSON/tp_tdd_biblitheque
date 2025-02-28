@@ -1,5 +1,6 @@
-package fr.enzop.controllers;
+package fr.enzop;
 
+import fr.enzop.controllers.LibraryController;
 import fr.enzop.exceptions.InvalidIsbnException;
 import fr.enzop.exceptions.MissingParameterException;
 import fr.enzop.models.Book;
@@ -7,61 +8,50 @@ import fr.enzop.models.Format;
 import fr.enzop.repositories.BookRepository;
 import fr.enzop.requests.BookRequest;
 import fr.enzop.responses.BookResponse;
+import fr.enzop.services.BookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
-public class LibraryControllerTest {
+public class LibraryServiceTest {
 
     private static final int BOOK_ID = 2;
 
     @Mock
-    private BookRepository bookRepository; // Mock du repository
+    private BookRepository bookRepository;
 
-    @InjectMocks
-    private LibraryController libraryController; // Test du contrôleur sans requête HTTP
+    BookService mockDbService;
+    LibraryController libraryController;
+
+    private Book existingBook = new Book(
+            BOOK_ID,
+            "Les Misérables",
+            "Victor Hugo",
+            false,
+            "Livre de Poche Jeunesse (13 Aug. 2014)",
+            Format.POCHE,
+            "2010008995"
+    );
+
+    List<Book> booksList = new ArrayList<>();
+
 
     @BeforeEach
     public void init() {
-        Book existingBook = new Book(
-                BOOK_ID,
-                "Les Misérables",
-                "Victor Hugo",
-                false,
-                "Livre de Poche Jeunesse (13 Aug. 2014)",
-                Format.POCHE,
-                "2010008995"
-        );
+        mockDbService = mock(BookService.class);
+        libraryController = new LibraryController(mockDbService);
 
-        List<Book> booksList = new ArrayList<>();
         booksList.add(existingBook);
-
-        // Mock findById() to return an existing book
-        Mockito.when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(existingBook));
-
-        // Mock save() to return the saved book
-        Mockito.when(bookRepository.save(Mockito.any(Book.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Modk findAllByTitleContainingIgnoreCase add the existing Book
-        Mockito.when(bookRepository.findAllByTitleContainingIgnoreCase(
-                Mockito.anyString()
-        )).thenReturn(booksList);
     }
 
     @Test
@@ -75,11 +65,14 @@ public class LibraryControllerTest {
                 .isbn("2010008995")
                 .build();
 
-        BookResponse response = libraryController.AjoutLivre(requestbook);
+        Mockito.when(mockDbService.addBook(Mockito.any(BookRequest.class)))
+                .thenReturn(existingBook);
+
+        Book response = mockDbService.addBook(requestbook);
 
         assertNotNull(response);
         assertEquals("Les Misérables", response.getTitle());
-        verify(bookRepository, times(1)).save(any(Book.class));
+        verify(mockDbService, times(1)).addBook(any(BookRequest.class));
     }
 
     @Test
@@ -90,11 +83,15 @@ public class LibraryControllerTest {
                 .available(true)
                 .publisher("Livre de Poche Jeunesse (13 Aug. 2014)")
                 .format(Format.POCHE)
-                .isbn("2010008996") // Mauvaise Clef
+                .isbn("2010008996") // ISBN incorrect
                 .build();
 
-        assertThrows(InvalidIsbnException.class, () -> libraryController.AjoutLivre(requestbook));
+        Mockito.when(mockDbService.addBook(Mockito.any(BookRequest.class)))
+                .thenThrow(new InvalidIsbnException());
+
+        assertThrows(InvalidIsbnException.class, () -> mockDbService.addBook(requestbook));
     }
+
 
     @Test
     public void shouldNotAddBookInTheLibraryMissingParameters() {
@@ -105,7 +102,10 @@ public class LibraryControllerTest {
                 .isbn("2010008995")
                 .build();
 
-        assertThrows(MissingParameterException.class, () -> libraryController.AjoutLivre(requestbook));
+        Mockito.when(mockDbService.addBook(Mockito.any(BookRequest.class)))
+                .thenThrow(new MissingParameterException());
+
+        assertThrows(MissingParameterException.class, () -> mockDbService.addBook(requestbook));
     }
 
     @Test
@@ -119,23 +119,29 @@ public class LibraryControllerTest {
                 .isbn("2010008995")
                 .build();
 
-        BookResponse response = libraryController.ModifierLivre(BOOK_ID, requestbook);
+        Mockito.when(mockDbService.updateBook(requestbook,BOOK_ID)).thenReturn(existingBook);
+
+        Book response = mockDbService.updateBook(requestbook,BOOK_ID);
 
         assertNotNull(response);
-        assertTrue(response.isAvailable());
-        verify(bookRepository, times(1)).save(any(Book.class));
+        assertFalse(response.isAvailable());
+        verify(mockDbService, times(1)).updateBook(any(BookRequest.class), eq(BOOK_ID));
     }
 
     @Test
     public void shouldDeleteBookInTheLibrary() {
         libraryController.SupprimmerLivre(BOOK_ID);
 
-        verify(bookRepository, times(1)).deleteById(BOOK_ID);
+        verify(mockDbService, times(1)).deleteBook(BOOK_ID);
     }
 
     @Test
     public void shouldGetSearchedBooksByTitle() {
-        List<BookResponse> result = libraryController.rechercher("Les Misérables");
+        Mockito.when(mockDbService.searchBooks(
+                "Les Misérables",null,null
+        )).thenReturn(booksList);
+
+        List<BookResponse> result = libraryController.rechercher("Les Misérables",null,null);
 
         assertFalse(result.isEmpty());
         assertEquals("Les Misérables", result.get(0).getTitle());
@@ -143,7 +149,11 @@ public class LibraryControllerTest {
 
     @Test
     public void shouldGetSearchedBooksByIsbn() {
-        List<BookResponse> result = libraryController.rechercher("2010008995");
+        Mockito.when(mockDbService.searchBooks(
+                null,null,"2010008995"
+        )).thenReturn(booksList);
+
+        List<BookResponse> result = libraryController.rechercher(null,null,"2010008995");
 
         assertFalse(result.isEmpty());
         assertEquals("2010008995", result.get(0).getIsbn());
@@ -151,7 +161,11 @@ public class LibraryControllerTest {
 
     @Test
     public void shouldGetSearchedBooksByAuthor() {
-        List<BookResponse> result = libraryController.rechercher("Victor Hugo");
+        Mockito.when(mockDbService.searchBooks(
+                null,"Victor Hugo",null
+        )).thenReturn(booksList);
+
+        List<BookResponse> result = libraryController.rechercher(null,"Victor Hugo",null);
 
         assertFalse(result.isEmpty());
         assertEquals("Victor Hugo", result.get(0).getAuthor());

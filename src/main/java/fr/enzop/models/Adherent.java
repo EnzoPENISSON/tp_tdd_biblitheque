@@ -3,12 +3,14 @@ package fr.enzop.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +25,9 @@ public class Adherent {
     private LocalDateTime dateNaissance;
     private Civilite civilite;
 
+    @OneToMany
+    private List<Reservation> reservations;
+
     public Adherent() {}
 
     public Adherent(int code, String nom, String prenom, LocalDateTime dateNaissance, Civilite civilite) {
@@ -31,6 +36,7 @@ public class Adherent {
         this.prenom = prenom;
         this.dateNaissance = dateNaissance;
         this.civilite = civilite;
+        this.reservations = new ArrayList<>();
     }
 
 }
