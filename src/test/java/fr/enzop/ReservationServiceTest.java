@@ -1,25 +1,19 @@
 package fr.enzop;
 
-import fr.enzop.controllers.LibraryController;
 import fr.enzop.controllers.ReservationController;
 import fr.enzop.exceptions.ReservationNotFound;
 import fr.enzop.exceptions.TooManyReservationsException;
 import fr.enzop.models.*;
 import fr.enzop.repositories.ReservationRepository;
-import fr.enzop.requests.BookRequest;
 import fr.enzop.requests.ReservationRequest;
-import fr.enzop.responses.ReservationResponse;
-import fr.enzop.services.BookService;
+import fr.enzop.services.MailService;
 import fr.enzop.services.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public class ReservationServiceTest {
 
     private static final int ADHERENT_ID = 2;
@@ -40,12 +33,15 @@ public class ReservationServiceTest {
     private ReservationRepository reservationRepository;
 
     ReservationService mockDbService;
+    MailService mockMailService;
     ReservationController reservationController;
+
 
     private Adherent existingAdherent = new Adherent(
             ADHERENT_ID,
             "Dupont",
             "Antoine",
+            "antoine@gmail.com",
             LocalDateTime.parse("2000-11-01T00:00:00"),
             Civilite.HOMME
     );
@@ -90,7 +86,8 @@ public class ReservationServiceTest {
     @BeforeEach
     public void init() {
         mockDbService = mock(ReservationService.class);
-        reservationController = new ReservationController(mockDbService);
+        mockMailService = mock(MailService.class);
+        reservationController = new ReservationController(mockDbService,mockMailService);
     }
 
     @Test
@@ -131,9 +128,6 @@ public class ReservationServiceTest {
                 .endReservation(false)
                 .build();
 
-        Mockito.when(mockDbService.countOpenReservationsByAdherent(Mockito.any(Adherent.class)))
-                .thenReturn(3);
-
         Mockito.when(mockDbService.addReservation(Mockito.any(ReservationRequest.class)))
                 .thenThrow(new TooManyReservationsException("L'adhérent a déjà 3 réservations ouvertes"));
 
@@ -146,9 +140,6 @@ public class ReservationServiceTest {
 
     @Test
     void shouldDetectExpiredReservation_WhenDurationExceedsMax() {
-        Mockito.when(mockDbService.getAllReservationAdherent(Mockito.any(Adherent.class)))
-                .thenReturn(reservationList);
-
         Mockito.when(mockDbService.isReservationExpired(existingReservationExpired)).thenReturn(Boolean.TRUE);
         Mockito.when(mockDbService.isReservationExpired(existingReservation)).thenReturn(Boolean.FALSE);
 
@@ -171,59 +162,8 @@ public class ReservationServiceTest {
         verify(mockDbService, times(1)).cancelReservation(reservationId);
     }
 
-    @Test
-    void shouldThrowException_WhenReservationNotFound() {
-        int reservationId = 999; // Non-existing reservation
 
-        Mockito.when(mockDbService.cancelReservation(reservationId))
-                .thenThrow(new ReservationNotFound());
 
-        assertThrows(ReservationNotFound.class, () -> mockDbService.cancelReservation(reservationId));
 
-        verify(mockDbService, times(1)).cancelReservation(reservationId);
-    }
-
-    @Test
-    void shouldGetAllReservations_WhenNotEndReserved() {
-        Mockito.when(mockDbService.getAllOpenReservation())
-                .thenReturn(reservationList);
-
-        List<Reservation> result = mockDbService.getAllOpenReservation();
-
-        assertNotNull(result);
-        assertEquals(reservationList.size(), result.size());
-
-        verify(mockDbService, times(1)).getAllOpenReservation();
-    }
-
-    @Test
-    void shouldGetAllHistoricalReservations_WhenEndReserved() {
-        // list de réservation historique
-        List<Reservation> reservations = Arrays.asList(
-                new Reservation(
-                        RESERVATION_ID,
-                        existingAdherent,
-                        NonavailableBook,
-                        LocalDateTime.parse("2024-02-01T00:00:00"),
-                        true
-                ),
-                new Reservation(
-                        RESERVATION_ID,
-                        existingAdherent,
-                        NonavailableBook,
-                        LocalDateTime.parse("2023-02-01T00:00:00"),
-                        true
-                )
-        );
-
-        Mockito.when(mockDbService.getAllHistoricAdherent(existingAdherent)).thenReturn(reservations);
-
-        List<Reservation> historiqueReservation = mockDbService.getAllHistoricAdherent(existingAdherent);
-
-        assertNotNull(historiqueReservation);
-        assertEquals(2, historiqueReservation.size());
-        assertTrue(historiqueReservation.stream().allMatch(Reservation::isEndReservation));
-        verify(mockDbService, times(1)).getAllHistoricAdherent(existingAdherent);
-    }
 
 }

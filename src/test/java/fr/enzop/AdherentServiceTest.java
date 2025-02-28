@@ -44,6 +44,7 @@ public class AdherentServiceTest {
             ADHERENT_ID,
             "Chemin",
             "Luc",
+            "luc@gmail.com",
             LocalDateTime.parse("2000-11-01T00:00:00"),
             Civilite.HOMME
     );
@@ -52,13 +53,6 @@ public class AdherentServiceTest {
     public void init() {
         mockDbService = mock(AdherentService.class);
         adherentController = new AdherentController(mockDbService);
-//
-//        // Mock findById() to return an existing adherent
-//        Mockito.when(adherentRepository.findById(ADHERENT_ID)).thenReturn(Optional.of(existingAdherent));
-//
-//        // Mock save() to return the saved adherent
-//        Mockito.when(adherentRepository.save(Mockito.any(Adherent.class)))
-//                .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test

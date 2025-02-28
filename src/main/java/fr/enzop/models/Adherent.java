@@ -22,6 +22,7 @@ public class Adherent {
     private int code;
     private String nom;
     private String prenom;
+    private String email;
     private LocalDateTime dateNaissance;
     private Civilite civilite;
 
@@ -30,10 +31,11 @@ public class Adherent {
 
     public Adherent() {}
 
-    public Adherent(int code, String nom, String prenom, LocalDateTime dateNaissance, Civilite civilite) {
+    public Adherent(int code, String nom, String prenom,String email, LocalDateTime dateNaissance, Civilite civilite) {
         this.code = code;
         this.nom = nom;
         this.prenom = prenom;
+        this.email = email;
         this.dateNaissance = dateNaissance;
         this.civilite = civilite;
         this.reservations = new ArrayList<>();

@@ -12,4 +12,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     List<Reservation> findByEndReservationFalse();
 
     List<Reservation> findByAdherentAndEndReservationTrue(Adherent adherent);
+
+    List<Reservation> findAllReservationByAdherent(Adherent adherent);
 }

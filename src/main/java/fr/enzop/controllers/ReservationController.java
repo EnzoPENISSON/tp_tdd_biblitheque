@@ -3,6 +3,7 @@ package fr.enzop.controllers;
 import fr.enzop.models.Reservation;
 import fr.enzop.requests.ReservationRequest;
 import fr.enzop.responses.ReservationResponse;
+import fr.enzop.services.MailService;
 import fr.enzop.services.ReservationService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    private final MailService mailService;
 
-    public ReservationController(ReservationService reservationService) {
+    public ReservationController(ReservationService reservationService, MailService mailService) {
         this.reservationService = reservationService;
+        this.mailService = mailService;
     }
 
     @PostMapping()

@@ -29,9 +29,11 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final BookRepository bookRepository;
 
+
     public ReservationService(ReservationRepository reservationRepository, BookRepository bookRepository) {
         this.reservationRepository = reservationRepository;
         this.bookRepository = bookRepository;
+
     }
 
     public Reservation addReservation(ReservationRequest reservationRequest) {
@@ -76,7 +78,7 @@ public class ReservationService {
     }
 
     public List<Reservation> getAllReservationAdherent(Adherent adherent) {
-        return reservationRepository.findByAdherent(adherent);
+        return reservationRepository.findAllReservationByAdherent(adherent);
     }
 
     public void deleteReservation(int id) {
@@ -106,11 +108,4 @@ public class ReservationService {
         reservationRepository.deleteById(isbn);
     }
 
-    public List<Reservation> getAllOpenReservation() {
-        return reservationRepository.findByEndReservationFalse();
-    }
-
-    public List<Reservation> getAllHistoricAdherent(Adherent adherent) {
-        return reservationRepository.findByAdherentAndEndReservationTrue(adherent);
-    }
 }
