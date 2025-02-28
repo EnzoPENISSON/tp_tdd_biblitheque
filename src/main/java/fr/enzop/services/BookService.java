@@ -67,7 +67,6 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-    //addBook
     public Book updateBook(BookRequest request, Integer id) {
         if (request == null || !request.paramsSet()) {
             throw new MissingParameterException();
