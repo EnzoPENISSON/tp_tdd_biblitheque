@@ -30,14 +30,17 @@ public class BookService {
         return bookRepository.findAll();
     }
 
-    public Optional<Book> getBookById(int id) {
-        return bookRepository.findById(id)
-                .or(() -> fetchAndSaveBookFromWebService(() -> webService.fetchBookById(id)));
+    public Book getBookById(int id) {
+        return bookRepository.findById(id).orElseThrow(BookNotFound::new);
     }
 
     public Optional<Book> getBookByIsbn(String isbn) {
-        return bookRepository.findByIsbn(isbn)
-                .or(() -> fetchAndSaveBookFromWebService(() -> webService.fetchBookByIsbn(isbn)));
+        Optional<Book> book = bookRepository.findByIsbn(isbn);
+        if (book.isPresent()) {
+            return book;
+        } else {
+            return webService.fetchBookByIsbn(isbn);  // Si le livre n'existe pas dans la base
+        }
     }
 
     public List<Book> searchBooks(String title, String author, String isbn) {
@@ -104,9 +107,5 @@ public class BookService {
     public void setBookNotAvailable(Book book) {
         Book bookToSetAvailable = bookRepository.findById(book.getId()).orElseThrow(BookNotFound::new);
         bookToSetAvailable.setAvailable(false);
-    }
-
-    private Optional<Book> fetchAndSaveBookFromWebService(Supplier<Optional<Book>> fetchFunction) {
-        return fetchFunction.get().map(bookRepository::save);
     }
 }

@@ -23,6 +23,7 @@ import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -196,6 +197,34 @@ public class ReservationServiceTest {
     }
     @Test
     void shouldGetAllHistoricalReservations_WhenEndReserved(){
+        List<Reservation> reservations = Arrays.asList();
+        reservations.add(new Reservation(
+                RESERVATION_ID,
+                existingAdherent,
+                NonavailableBook,
+                LocalDateTime.parse("2024-02-01T00:00:00"),
+                true
+        ));
+        reservations.add(new Reservation(
+                RESERVATION_ID,
+                existingAdherent,
+                NonavailableBook,
+                LocalDateTime.parse("2025-02-01T00:00:00"),
+                false
+        ));
+        reservations.add(new Reservation(
+                RESERVATION_ID,
+                existingAdherent,
+                NonavailableBook,
+                LocalDateTime.parse("2023-02-01T00:00:00"),
+                true
+        ));
 
+
+        Mockito.when(mockDbService.getAllHistoricAdherent()).thenReturn(reservationList);
+
+        List<Reservation> historiqueReservation = mockDbService.getAllHistoricAdherent();
+
+        assertNotNull(historiqueReservation);
     }
 }

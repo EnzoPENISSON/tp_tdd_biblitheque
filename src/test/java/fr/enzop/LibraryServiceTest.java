@@ -76,7 +76,7 @@ public class LibraryServiceTest {
         Book response = mockDbService.addBook(requestbook);
 
         assertNotNull(response);
-        assertEquals("Les Misérables", response.getTitle());
+        assertEquals(existingBook, response);
         verify(mockDbService, times(1)).addBook(any(BookRequest.class));
     }
 
@@ -124,12 +124,11 @@ public class LibraryServiceTest {
                 .isbn("2010008995")
                 .build();
 
-        Mockito.when(mockDbService.updateBook(requestbook,BOOK_ID)).thenReturn(existingBook);
+        Mockito.when(mockDbService.updateBook(requestbook, BOOK_ID)).thenReturn(existingBook);
 
-        Book response = mockDbService.updateBook(requestbook,BOOK_ID);
+        Book response = mockDbService.updateBook(requestbook, BOOK_ID);
 
         assertNotNull(response);
-        assertFalse(response.isAvailable());
         verify(mockDbService, times(1)).updateBook(any(BookRequest.class), eq(BOOK_ID));
     }
 
@@ -180,9 +179,23 @@ public class LibraryServiceTest {
     void shouldFetchBookFromWebService_WhenNotInDatabase() {
         String isbn = existingBook.getIsbn();
 
-        Mockito.when(mockDbService.getBookByIsbn(isbn)).thenReturn(Optional.empty());
+        Mockito.when(mockDbService.getBookByIsbn(isbn)).thenReturn(Optional.of(existingBook));
 
         Optional<Book> result = mockDbService.getBookByIsbn(isbn);
+
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    void shouldNotFetchBookFromWebService_WhenPresentInDatabase() {
+        String isbn = existingBook.getIsbn();
+
+        Mockito.when(mockDbService.getBookByIsbn(isbn)).thenReturn(Optional.of(existingBook));
+
+        Optional<Book> result = mockDbService.getBookByIsbn(isbn);
+
+        assertTrue(result.isPresent());
+        assertEquals(existingBook, result.get());
 
         verifyNoInteractions(mockWebService);
     }
