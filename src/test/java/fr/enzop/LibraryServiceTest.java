@@ -28,10 +28,10 @@ public class LibraryServiceTest {
     private static final int BOOK_ID = 2;
 
     @Mock
-    private BookRepository bookRepository; // Mock du repository
+    private BookRepository bookRepository;
 
     BookService mockDbService;
-    LibraryController libraryController; // Test du contrôleur sans requête HTTP
+    LibraryController libraryController;
 
     private Book existingBook = new Book(
             BOOK_ID,
