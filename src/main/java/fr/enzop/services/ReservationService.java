@@ -109,4 +109,8 @@ public class ReservationService {
     public List<Reservation> getAllOpenReservation() {
         return reservationRepository.findByEndReservationFalse();
     }
+
+    public List<Reservation> getAllHistoricAdherent(Adherent adherent) {
+        return reservationRepository.findByAdherentAndEndReservationTrue(adherent);
+    }
 }

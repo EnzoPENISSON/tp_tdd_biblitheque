@@ -195,36 +195,35 @@ public class ReservationServiceTest {
 
         verify(mockDbService, times(1)).getAllOpenReservation();
     }
+
     @Test
-    void shouldGetAllHistoricalReservations_WhenEndReserved(){
-        List<Reservation> reservations = Arrays.asList();
-        reservations.add(new Reservation(
-                RESERVATION_ID,
-                existingAdherent,
-                NonavailableBook,
-                LocalDateTime.parse("2024-02-01T00:00:00"),
-                true
-        ));
-        reservations.add(new Reservation(
-                RESERVATION_ID,
-                existingAdherent,
-                NonavailableBook,
-                LocalDateTime.parse("2025-02-01T00:00:00"),
-                false
-        ));
-        reservations.add(new Reservation(
-                RESERVATION_ID,
-                existingAdherent,
-                NonavailableBook,
-                LocalDateTime.parse("2023-02-01T00:00:00"),
-                true
-        ));
+    void shouldGetAllHistoricalReservations_WhenEndReserved() {
+        // list de réservation historique
+        List<Reservation> reservations = Arrays.asList(
+                new Reservation(
+                        RESERVATION_ID,
+                        existingAdherent,
+                        NonavailableBook,
+                        LocalDateTime.parse("2024-02-01T00:00:00"),
+                        true
+                ),
+                new Reservation(
+                        RESERVATION_ID,
+                        existingAdherent,
+                        NonavailableBook,
+                        LocalDateTime.parse("2023-02-01T00:00:00"),
+                        true
+                )
+        );
 
+        Mockito.when(mockDbService.getAllHistoricAdherent(existingAdherent)).thenReturn(reservations);
 
-        Mockito.when(mockDbService.getAllHistoricAdherent()).thenReturn(reservationList);
-
-        List<Reservation> historiqueReservation = mockDbService.getAllHistoricAdherent();
+        List<Reservation> historiqueReservation = mockDbService.getAllHistoricAdherent(existingAdherent);
 
         assertNotNull(historiqueReservation);
+        assertEquals(2, historiqueReservation.size());
+        assertTrue(historiqueReservation.stream().allMatch(Reservation::isEndReservation));
+        verify(mockDbService, times(1)).getAllHistoricAdherent(existingAdherent);
     }
+
 }
