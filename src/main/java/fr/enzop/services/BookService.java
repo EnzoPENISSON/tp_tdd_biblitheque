@@ -87,8 +87,8 @@ public class BookService {
         return bookRepository.save(bookToUpdate);
     }
 
-    public void deleteBook(int isbn) {
-        bookRepository.deleteById(isbn);
+    public void deleteBook(int id) {
+        bookRepository.deleteById(id);
     }
 
 //    public Book fetchAndSaveBookInfo(String isbn) {

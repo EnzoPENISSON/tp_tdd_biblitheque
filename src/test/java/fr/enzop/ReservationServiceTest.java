@@ -66,7 +66,7 @@ public class ReservationServiceTest {
                 .endReservation(false)
                 .build();
 
-        ReservationResponse response = reservationController.reserver(reservationRequest);
+        ReservationResponse response = mockDbService.reserver(reservationRequest);
 
         assertNotNull(response);
     }
