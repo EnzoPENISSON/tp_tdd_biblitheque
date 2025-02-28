@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 import fr.enzop.exceptions.ReservationNotFound;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,7 +39,7 @@ public class ReservationService {
             throw new TooManyReservationsException("L'adhérent a déjà 3 réservations ouvertes");
         }
 
-        BookService bookService = new BookService(bookRepository);
+        BookService bookService = new BookService(bookRepository, new WebService(new RestTemplate()));
 
         if (!bookService.bookAvailable(reservationRequest.getBook())){
             throw new BookNotAvailable();
@@ -49,7 +50,7 @@ public class ReservationService {
 
         Reservation savedReservation = reservationRepository.save(reservation);
 
-        bookService.SetbookNotAvailable(reservationRequest.getBook());
+        bookService.setBookNotAvailable(reservationRequest.getBook());
 
         return savedReservation;
     }
@@ -87,8 +88,8 @@ public class ReservationService {
             Reservation reservation = reservationRepository.findById(id).orElseThrow(ReservationNotFound::new);
             reservation.setEndReservation(false);
 
-            BookService bookService = new BookService(bookRepository);
-            bookService.SetbookAvailable(reservation.getBook());
+            BookService bookService = new BookService(bookRepository, new WebService(new RestTemplate()));
+            bookService.setBookAvailable(reservation.getBook());
 
 
             return reservationRepository.save(reservation).isEndReservation();

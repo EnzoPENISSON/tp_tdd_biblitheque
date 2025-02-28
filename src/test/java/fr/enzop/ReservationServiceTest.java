@@ -194,5 +194,8 @@ public class ReservationServiceTest {
 
         verify(mockDbService, times(1)).getAllOpenReservation();
     }
+    @Test
+    void shouldGetAllHistoricalReservations_WhenEndReserved(){
 
+    }
 }

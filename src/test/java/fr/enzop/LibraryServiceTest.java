@@ -9,15 +9,18 @@ import fr.enzop.repositories.BookRepository;
 import fr.enzop.requests.BookRequest;
 import fr.enzop.responses.BookResponse;
 import fr.enzop.services.BookService;
+import fr.enzop.services.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.BeanUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -31,6 +34,7 @@ public class LibraryServiceTest {
     private BookRepository bookRepository;
 
     BookService mockDbService;
+    WebService mockWebService;
     LibraryController libraryController;
 
     private Book existingBook = new Book(
@@ -49,6 +53,7 @@ public class LibraryServiceTest {
     @BeforeEach
     public void init() {
         mockDbService = mock(BookService.class);
+        mockWebService = mock(WebService.class);
         libraryController = new LibraryController(mockDbService);
 
         booksList.add(existingBook);
@@ -169,5 +174,16 @@ public class LibraryServiceTest {
 
         assertFalse(result.isEmpty());
         assertEquals("Victor Hugo", result.get(0).getAuthor());
+    }
+
+    @Test
+    void shouldFetchBookFromWebService_WhenNotInDatabase() {
+        String isbn = existingBook.getIsbn();
+
+        Mockito.when(mockDbService.getBookByIsbn(isbn)).thenReturn(Optional.empty());
+
+        Optional<Book> result = mockDbService.getBookByIsbn(isbn);
+
+        verifyNoInteractions(mockWebService);
     }
 }

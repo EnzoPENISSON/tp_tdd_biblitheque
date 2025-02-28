@@ -13,16 +13,17 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
 public class BookService {
 
     private final BookRepository bookRepository;
-    //private final RestTemplate restTemplate;
+    private final WebService webService;
 
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository, WebService webService) {
         this.bookRepository = bookRepository;
-        //this.restTemplate = restTemplate;
+        this.webService = webService;
     }
 
     public List<Book> getAllBooks() {
@@ -30,14 +31,16 @@ public class BookService {
     }
 
     public Optional<Book> getBookById(int id) {
-        return bookRepository.findById(id);
+        return bookRepository.findById(id)
+                .or(() -> fetchAndSaveBookFromWebService(() -> webService.fetchBookById(id)));
     }
 
-    public Optional<Book> getBookByIsbn(int isbn) {
-        return bookRepository.findById(isbn);
+    public Optional<Book> getBookByIsbn(String isbn) {
+        return bookRepository.findByIsbn(isbn)
+                .or(() -> fetchAndSaveBookFromWebService(() -> webService.fetchBookByIsbn(isbn)));
     }
 
-    public List<Book> searchBooks(String title, String author,String isbn) {
+    public List<Book> searchBooks(String title, String author, String isbn) {
         if (title != null && !title.isEmpty()) {
             return bookRepository.findByTitleContainingIgnoreCase(title);
         }
@@ -56,9 +59,7 @@ public class BookService {
         }
 
         ISBNValidator isbnValidator = new ISBNValidator();
-        System.out.println(isbnValidator.validateISBN(request.getIsbn()));
-
-        if (!isbnValidator.validateISBN(request.getIsbn())){
+        if (!isbnValidator.validateISBN(request.getIsbn())) {
             throw new InvalidIsbnException();
         }
 
@@ -73,8 +74,7 @@ public class BookService {
         }
 
         ISBNValidator isbnValidator = new ISBNValidator();
-
-        if (!isbnValidator.validateISBN(request.getIsbn())){
+        if (!isbnValidator.validateISBN(request.getIsbn())) {
             throw new InvalidIsbnException();
         }
 
@@ -82,7 +82,7 @@ public class BookService {
             throw new BookNotFound();
         }
 
-        Book bookToUpdate = this.getBookByIsbn(id).orElseThrow(BookNotFound::new);;
+        Book bookToUpdate = this.getBookByIsbn(request.getIsbn()).orElseThrow(BookNotFound::new);
         BeanUtils.copyProperties(request, bookToUpdate);
         return bookRepository.save(bookToUpdate);
     }
@@ -96,22 +96,17 @@ public class BookService {
         return existingBook.isAvailable();
     }
 
-    public void SetbookAvailable(Book book) {
-        Book booktosetAvailable = bookRepository.findById(book.getId()).orElseThrow(BookNotFound::new);
-        booktosetAvailable.setAvailable(true);
+    public void setBookAvailable(Book book) {
+        Book bookToSetAvailable = bookRepository.findById(book.getId()).orElseThrow(BookNotFound::new);
+        bookToSetAvailable.setAvailable(true);
     }
 
-    public void SetbookNotAvailable(Book book) {
-        Book booktosetAvailable = bookRepository.findById(book.getId()).orElseThrow(BookNotFound::new);
-        booktosetAvailable.setAvailable(false);
+    public void setBookNotAvailable(Book book) {
+        Book bookToSetAvailable = bookRepository.findById(book.getId()).orElseThrow(BookNotFound::new);
+        bookToSetAvailable.setAvailable(false);
     }
 
-//    public Book fetchAndSaveBookInfo(String isbn) {
-//        String url = "https://api.example.com/books?isbn=" + isbn;
-//        Book bookInfo = restTemplate.getForObject(url, Book.class);
-//        if (bookInfo != null) {
-//            return bookRepository.save(bookInfo);
-//        }
-//        throw new RuntimeException("Impossible de récupérer les infos pour l'ISBN : " + isbn);
-//    }
+    private Optional<Book> fetchAndSaveBookFromWebService(Supplier<Optional<Book>> fetchFunction) {
+        return fetchFunction.get().map(bookRepository::save);
+    }
 }
