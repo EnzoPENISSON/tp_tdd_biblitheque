@@ -1,5 +1,6 @@
-package fr.enzop.controllers;
+package fr.enzop;
 
+import fr.enzop.controllers.AdherentController;
 import fr.enzop.exceptions.MissingParameterException;
 import fr.enzop.models.Adherent;
 import fr.enzop.models.Civilite;
@@ -24,7 +25,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class AdherentControllerTest {
+public class AdherentServiceTest {
 
     private static final int ADHERENT_ID = 2;
 
