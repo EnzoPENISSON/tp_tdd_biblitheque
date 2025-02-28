@@ -13,6 +13,7 @@ import fr.enzop.services.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,9 +33,11 @@ public class BookServiceTest {
 
     @Mock
     private BookRepository bookRepository;
-
+    @InjectMocks
     BookService mockDbService;
+    @InjectMocks
     WebService mockWebService;
+    @InjectMocks
     LibraryController libraryController;
 
     private Book existingBook = new Book(

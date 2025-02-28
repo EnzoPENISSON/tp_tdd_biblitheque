@@ -1,6 +1,7 @@
 package fr.enzop;
 
 import fr.enzop.controllers.ReservationController;
+import fr.enzop.exceptions.BookNotAvailable;
 import fr.enzop.exceptions.ReservationNotFound;
 import fr.enzop.exceptions.TooManyReservationsException;
 import fr.enzop.models.*;
@@ -11,6 +12,7 @@ import fr.enzop.services.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,9 +33,11 @@ public class ReservationServiceTest {
     private static final int RESERVATION_ID = 2;
     @Mock
     private ReservationRepository reservationRepository;
-
+    @InjectMocks
     ReservationService mockDbService;
+    @InjectMocks
     MailService mockMailService;
+    @InjectMocks
     ReservationController reservationController;
 
 
@@ -102,8 +106,16 @@ public class ReservationServiceTest {
                 .thenReturn(existingReservationExpired);
 
         Reservation response = mockDbService.addReservation(reservationRequest);
-        assertTrue(response.getBook().isAvailable()); // livre disponible
+
+        assertTrue(response.getBook().isAvailable());
+        assertEquals(existingAdherent, response.getAdherent());
+        assertEquals(existingBook, response.getBook());
+        assertNotNull(response.getDateReservation());
+        assertFalse(response.isEndReservation());
+
+        Mockito.verify(mockDbService, Mockito.times(1)).addReservation(Mockito.any(ReservationRequest.class));
     }
+
 
     @Test
     void shouldNotCreateReservation_WhenBookIsNotAvailable() {
@@ -114,12 +126,12 @@ public class ReservationServiceTest {
                 .build();
 
         Mockito.when(mockDbService.addReservation(Mockito.any(ReservationRequest.class)))
-                .thenReturn(existingReservation);
+                .thenThrow(new BookNotAvailable());
 
-        Reservation response = mockDbService.addReservation(reservationRequest);
-        assertFalse(response.getBook().isAvailable()); // Livre pas disponible
+        assertThrows(BookNotAvailable.class, () -> mockDbService.addReservation(reservationRequest));
+
+        Mockito.verify(mockDbService, Mockito.times(1)).addReservation(Mockito.any(ReservationRequest.class));
     }
-
     @Test
     void shouldNotCreateReservation_WhenTooManyReservations() {
         ReservationRequest reservationRequest = ReservationRequest.builder()

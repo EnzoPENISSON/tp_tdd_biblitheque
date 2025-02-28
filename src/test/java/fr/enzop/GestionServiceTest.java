@@ -16,6 +16,7 @@ import fr.enzop.services.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -38,9 +39,13 @@ public class GestionServiceTest {
     private static final int BOOK_ID = 2;
     private static final int RESERVATION_ID = 2;
 
+    @InjectMocks
     GestionService mockgestionService;
+    @InjectMocks
     ReservationService mockDbService;
+    @InjectMocks
     MailService mockMailService;
+    @InjectMocks
     ReservationController reservationController;
 
     private Adherent existingAdherent = new Adherent(
