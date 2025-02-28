@@ -153,11 +153,13 @@ public class ReservationServiceTest {
 
         assertTrue(mockDbService.isReservationExpired(existingReservationExpired));
         assertFalse(mockDbService.isReservationExpired(existingReservation));
+        verify(mockDbService, times(1)).isReservationExpired(existingReservationExpired);
+        verify(mockDbService, times(1)).isReservationExpired(existingReservation);
     }
 
     @Test
     void shouldCancelReservation_WhenReservationExists() {
-        Integer reservationId = RESERVATION_ID;
+        int reservationId = RESERVATION_ID;
 
         Mockito.when(mockDbService.cancelReservation(reservationId))
                 .thenReturn(true); // Suppose cancelReservation returns a boolean
@@ -170,7 +172,7 @@ public class ReservationServiceTest {
 
     @Test
     void shouldThrowException_WhenReservationNotFound() {
-        Integer reservationId = 999; // Non-existing reservation
+        int reservationId = 999; // Non-existing reservation
 
         Mockito.when(mockDbService.cancelReservation(reservationId))
                 .thenThrow(new ReservationNotFound());
@@ -180,14 +182,4 @@ public class ReservationServiceTest {
         verify(mockDbService, times(1)).cancelReservation(reservationId);
     }
 
-
-    @Test
-    void shouldGetReservationsByAdherent() {
-        assertTrue(true);
-    }
-
-    @Test
-    void shouldExpireReservation_WhenTimeLimitReached() {
-        assertTrue(true);
-    }
 }

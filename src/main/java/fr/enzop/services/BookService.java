@@ -91,6 +91,21 @@ public class BookService {
         bookRepository.deleteById(id);
     }
 
+    public boolean bookAvailable(Book book) {
+        Book existingBook = bookRepository.findById(book.getId()).orElseThrow(BookNotFound::new);
+        return existingBook.isAvailable();
+    }
+
+    public void SetbookAvailable(Book book) {
+        Book booktosetAvailable = bookRepository.findById(book.getId()).orElseThrow(BookNotFound::new);
+        booktosetAvailable.setAvailable(true);
+    }
+
+    public void SetbookNotAvailable(Book book) {
+        Book booktosetAvailable = bookRepository.findById(book.getId()).orElseThrow(BookNotFound::new);
+        booktosetAvailable.setAvailable(false);
+    }
+
 //    public Book fetchAndSaveBookInfo(String isbn) {
 //        String url = "https://api.example.com/books?isbn=" + isbn;
 //        Book bookInfo = restTemplate.getForObject(url, Book.class);
