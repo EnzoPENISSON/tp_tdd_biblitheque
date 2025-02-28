@@ -2,6 +2,7 @@ package fr.enzop;
 
 import fr.enzop.controllers.LibraryController;
 import fr.enzop.controllers.ReservationController;
+import fr.enzop.exceptions.ReservationNotFound;
 import fr.enzop.exceptions.TooManyReservationsException;
 import fr.enzop.models.*;
 import fr.enzop.repositories.ReservationRepository;
@@ -156,13 +157,29 @@ public class ReservationServiceTest {
 
     @Test
     void shouldCancelReservation_WhenReservationExists() {
-        assertTrue(true);
+        Integer reservationId = RESERVATION_ID;
+
+        Mockito.when(mockDbService.cancelReservation(reservationId))
+                .thenReturn(true); // Suppose cancelReservation returns a boolean
+
+        boolean result = mockDbService.cancelReservation(reservationId);
+
+        assertTrue(result);
+        verify(mockDbService, times(1)).cancelReservation(reservationId);
     }
 
     @Test
-    void shouldNotCancelReservation_WhenReservationNotFound() {
-        assertTrue(true);
+    void shouldThrowException_WhenReservationNotFound() {
+        Integer reservationId = 999; // Non-existing reservation
+
+        Mockito.when(mockDbService.cancelReservation(reservationId))
+                .thenThrow(new ReservationNotFound());
+
+        assertThrows(ReservationNotFound.class, () -> mockDbService.cancelReservation(reservationId));
+
+        verify(mockDbService, times(1)).cancelReservation(reservationId);
     }
+
 
     @Test
     void shouldGetReservationsByAdherent() {
