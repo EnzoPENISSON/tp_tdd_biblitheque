@@ -182,4 +182,17 @@ public class ReservationServiceTest {
         verify(mockDbService, times(1)).cancelReservation(reservationId);
     }
 
+    @Test
+    void shouldGetAllReservations_WhenNotEndReserved() {
+        Mockito.when(mockDbService.getAllOpenReservation())
+                .thenReturn(reservationList);
+
+        List<Reservation> result = mockDbService.getAllOpenReservation();
+
+        assertNotNull(result);
+        assertEquals(reservationList.size(), result.size());
+
+        verify(mockDbService, times(1)).getAllOpenReservation();
+    }
+
 }
