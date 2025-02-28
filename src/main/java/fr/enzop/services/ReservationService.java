@@ -9,6 +9,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import fr.enzop.exceptions.ReservationNotFound;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +48,13 @@ public class ReservationService {
                 .count();
     }
 
+    public boolean isReservationExpired(Reservation reservation) {
+        return reservation.getDateReservation().plusMonths(4).isBefore(LocalDateTime.now());
+    }
+
+    public List<Reservation> getAllReservationAdherent(Adherent adherent) {
+        return reservationRepository.findByAdherent(adherent);
+    }
 
     public void deleteReservation(int id) {
         reservationRepository.deleteById(id);
